@@ -13,6 +13,19 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Net.Http;
+using NPOI.HPSF;
+using System.Diagnostics;
+using RestSharp.Extensions;
+using System.Net;
+using System.Web.Http;
+using System.ServiceModel;
+using System.Net.Http.Headers;
+using Microsoft.Net.Http.Headers;
+using NhapHangV2.Interface.Services;
+using ContentDispositionHeaderValue = System.Net.Http.Headers.ContentDispositionHeaderValue;
+using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace NhapHangV2.BaseAPI.Controllers
 {
@@ -75,7 +88,7 @@ namespace NhapHangV2.BaseAPI.Controllers
                     appDomainResult = new AppDomainResult()
                     {
                         Success = true,
-                        Data =  fileUrl
+                        Data = fileUrl
                     };
                 }
             });
@@ -136,12 +149,84 @@ namespace NhapHangV2.BaseAPI.Controllers
             });
             return appDomainResult;
         }
-    }
 
-    public class DataUploadImageResponse
-    {
-        public string FileName { get; set; }
-        public string FilePath { get; set; }
-        public string FileUploadPath { get; set; }
-    }
+
+        [DisableFormValueModelBinding]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        [HttpPost("upload-file-stream")]
+        [AppAuthorize(new int[] { CoreContants.Upload })]
+        public virtual async Task<AppDomainResult> UploadFileStream([FromQuery] string fileName, [FromQuery] int part, [FromQuery] int size)
+         {
+            AppDomainResult appDomainResult = new AppDomainResult();
+            await Task.Run(async () =>
+            {
+                Request.EnableBuffering(long.MaxValue);
+                var content = new StreamContent(Request.BodyReader.AsStream(true));
+                foreach (var header in Request.Headers)
+                {
+                    content.Headers.TryAddWithoutValidation(header.Key, header.Value.AsEnumerable());
+                }
+                if (!string.IsNullOrEmpty(fileName.Trim()) && part > 0 && size >= part && content.Headers.ContentLength > 0)
+                {
+                    string fileUploadPath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME);
+                    var provider = new MultipartFormDataStreamProvider(fileUploadPath);
+                    string originalFileName = String.Concat(fileUploadPath, "\\" + fileName.Replace('.', '_') + "_" + part);
+                    FileStream fileInput = new FileStream(originalFileName, FileMode.Create);
+                    await content.CopyToAsync(fileInput);
+                    fileInput.Close();
+                    string doneFileName = String.Concat(fileUploadPath, "\\" + fileName.Replace('.', '_') + "_Done_" + part);
+                    System.IO.File.Move(originalFileName, doneFileName);
+                    string[] filePaths = Directory.GetFiles(fileUploadPath, fileName.Replace('.', '_')+"_Done" + "*");
+                    if (filePaths.Length >= size)
+                    {
+                        var resultFile = System.IO.File.Create(fileUploadPath + "\\" + fileName);
+                        resultFile.Position = 0;
+                        string[] filePathsOrded = new string[filePaths.Length + 1];
+                        foreach (var filePath in filePaths)
+                        {
+                            int startIndex = filePath.LastIndexOf("_") + 1;
+                            int partFile = int.Parse(filePath.Substring(startIndex));
+                            filePathsOrded[partFile] = filePath;
+                        }
+                        for (int i = 1; i < filePathsOrded.Length; i++)
+                        {
+                            var data = System.IO.File.ReadAllBytes(filePathsOrded[i]);
+                            foreach (var x in data)
+                            {
+                                resultFile.WriteByte(x);
+                            }
+                            System.IO.File.Delete(filePathsOrded[i]);
+                        }
+                        resultFile.Close();
+
+                    }
+                    appDomainResult = new AppDomainResult()
+                    {
+                        Success = true
+                    };
+                }
+            });
+            return appDomainResult;
+         }
+
+
+        [HttpGet("download-file")]
+        [AppAuthorize(new int[] { CoreContants.Upload })]
+        public virtual async Task<PhysicalFileResult> DownloadFile([FromQuery] string fileName)
+        {
+            string fileUploadPath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME);
+            var filePath = fileUploadPath + "\\" + fileName;
+            var resultFile = new PhysicalFileResult(filePath, "application/octet-stream")
+            {
+                FileDownloadName = fileName,
+            };
+            return resultFile;
+        }
+
+    } 
+
+
+
+
 }

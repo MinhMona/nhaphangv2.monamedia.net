@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +16,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NhapHangV2.BaseAPI;
 using NhapHangV2.Extensions;
+using NhapHangV2.Interface.Services;
 using NhapHangV2.Models.AutoMapper;
+using NhapHangV2.Service.Services;
 using NhapHangV2.Utilities;
 using Serilog;
 using System;
@@ -149,6 +153,11 @@ namespace NhapHangV2.API
                 //Viết hoa chữ cái đầu
                 options.PayloadSerializerOptions.PropertyNamingPolicy = null;
             });
+
+            services.Configure<FormOptions>(x =>
+            {
+                x.MultipartBodyLengthLimit = long.MaxValue;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -224,10 +233,10 @@ namespace NhapHangV2.API
             });
 
             app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
+            {   endpoints.MapControllers();
                 endpoints.MapHub<DomainHub>("/hubs").RequireCors(SignalROrigins);
             });
+            
         }
     }
 }
