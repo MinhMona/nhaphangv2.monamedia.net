@@ -306,6 +306,8 @@ namespace NhapHangV2.Service.Services
                                     await unitOfWork.Repository<AdminSendUserWallet>().CreateAsync(new AdminSendUserWallet()
                                     {
                                         UID = item.UID,
+                                        Updated = DateTime.Now,
+                                        UpdatedBy= userName,
                                         Amount = totalLeftPay,
                                         Status = (int)WalletStatus.DaDuyet,
                                         BankId = 100, //Đặt đại
