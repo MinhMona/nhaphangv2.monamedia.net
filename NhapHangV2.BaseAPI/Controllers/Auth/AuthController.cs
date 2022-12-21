@@ -625,7 +625,7 @@ namespace NhapHangV2.BaseAPI.Controllers.Auth
             var controllers = new List<ControllerModel>();
             var roles = new List<Role>();
             var roleAddToCart = new List<Role>();
-            foreach (Assembly assem in assems)
+            /*foreach (Assembly assem in assems)
             {
                 var controller = assem.GetTypes().Where(type => typeof(ControllerBase).IsAssignableFrom(type) && !type.IsAbstract)
               .Select(e => new ControllerModel()
@@ -640,7 +640,7 @@ namespace NhapHangV2.BaseAPI.Controllers.Auth
             {
                 foreach (var controller in controllers)
                 {
-                    var Permissions = await this.userService.GetPermission(userLoginModel.UserId, controller.Id);
+                    /*var Permissions = await this.userService.GetPermission(userLoginModel.UserId, controller.Id);
                     if (Permissions.Length == 0) continue;
                     roles.Add(new Role()
                     {
@@ -656,13 +656,24 @@ namespace NhapHangV2.BaseAPI.Controllers.Auth
                         roleAddToCart.Add(new Role()
                         {
                             RoleName = controller.Id,
-                            Permissions = Permissions
+                            Permissions = PermissionsAddToCart
                         });
                     }
                 }
             }
-            userLoginModel.Roles = roles;
-
+            userLoginModel.Roles = roles;*/
+            string[] controllerId = { "OrderShopTemp", "Configurations" , "User" };
+            for (int i = 0; i < controllerId.Length; i++) {
+                var PermissionsAddToCart = await this.userService.GetPermission(userLoginModel.UserId, controllerId[i]);
+                if (PermissionsAddToCart.Length != 0)
+                {
+                    roleAddToCart.Add(new Role()
+                    {
+                        RoleName = controllerId[i],
+                        Permissions = PermissionsAddToCart
+                    });
+                }
+            }
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
