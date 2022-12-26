@@ -31,6 +31,5 @@ namespace NhapHangV2.Utilities
                 return objT;
             }).ToList();
         }
-
     }
 }

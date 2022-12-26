@@ -28,5 +28,10 @@ namespace NhapHangV2.Models.Catalogue
         /// Vị trí
         /// </summary>
         public int? Position { get; set; }
+
+        /// <summary>
+        /// danh sach menu con
+        /// </summary>
+        public IList<MenuModel> Children { get; set; }
     }
 }

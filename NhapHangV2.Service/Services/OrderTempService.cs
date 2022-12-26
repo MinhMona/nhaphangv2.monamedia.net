@@ -48,10 +48,15 @@ namespace NhapHangV2.Service.Services
                         var orderShopTemp = await orderShopTempService.GetByIdAsync(exists.OrderShopTempId ?? 0);
                         if (!orderShopTemp.OrderTemps.Any()) //Không còn sản phẩm nào
                             await orderShopTempService.DeleteAsync(orderShopTemp.Id);
+                        else
+                        {
+                            orderShopTemp = await orderShopTempService.UpdatePrice(orderShopTemp);
+                            await orderShopTempService.UpdateAsync(orderShopTemp);
+                        }
                     }
                     else
                         throw new Exception(id + " not exists");
-
+                    await unitOfWork.SaveAsync();
                     await dbContextTransaction.CommitAsync();
                     return true;
                 }

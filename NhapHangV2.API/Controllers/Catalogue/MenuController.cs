@@ -3,15 +3,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NhapHangV2.BaseAPI.Controllers;
+using NhapHangV2.Entities;
 using NhapHangV2.Entities.Catalogue;
 using NhapHangV2.Entities.DomainEntities;
 using NhapHangV2.Extensions;
 using NhapHangV2.Interface.Services;
 using NhapHangV2.Interface.Services.Catalogue;
+using NhapHangV2.Interface.UnitOfWork;
 using NhapHangV2.Models.Catalogue;
 using NhapHangV2.Request.Catalogue;
 using NhapHangV2.Utilities;
@@ -31,7 +34,7 @@ namespace NhapHangV2.API.Controllers.Catalogue
     {
         protected IMapper mapper;
         protected IWebHostEnvironment env;
-
+        
         protected readonly IMenuService menuService;
         protected readonly IConfigurationsService configurationsService;
         public MenuController(IServiceProvider serviceProvider, ILogger<MenuController> logger, IWebHostEnvironment env, IMapper mapper)
@@ -186,6 +189,7 @@ namespace NhapHangV2.API.Controllers.Catalogue
             {
                 PagedList<Menu> pagedData = await menuService.GetPagedListData(baseSearch);
                 PagedList<MenuModel> pagedDataModel = mapper.Map<PagedList<MenuModel>>(pagedData);
+                pagedDataModel = await menuService.GetSubMenu(pagedDataModel);
                 appDomainResult = new AppDomainResult
                 {
                     Data = pagedDataModel,

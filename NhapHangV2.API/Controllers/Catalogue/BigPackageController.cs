@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using NhapHangV2.BaseAPI.Controllers;
 using NhapHangV2.Entities.Catalogue;
 using NhapHangV2.Entities.DomainEntities;
+using NhapHangV2.Entities.Search;
 using NhapHangV2.Extensions;
 using NhapHangV2.Interface.Services;
 using NhapHangV2.Interface.Services.Catalogue;
@@ -30,15 +31,15 @@ namespace NhapHangV2.API.Controllers.Catalogue
     [ApiController]
     [Description("Quản lý bao hàng")]
     [Authorize]
-    public class BigPackageController : BaseCatalogueController<BigPackage, BigPackageModel, BigPackageRequest, CatalogueSearch>
+    public class BigPackageController : BaseController<BigPackage, BigPackageModel, BigPackageRequest, BigPackageSearch>
     {
         private IConfiguration configuration;
         protected readonly ISmallPackageService smallPackageService;
 
-        public BigPackageController(IServiceProvider serviceProvider, ILogger<BaseCatalogueController<BigPackage, BigPackageModel, BigPackageRequest, CatalogueSearch>> logger, IWebHostEnvironment env, IConfiguration configuration) : base(serviceProvider, logger, env)
+        public BigPackageController(IServiceProvider serviceProvider, ILogger<BaseController<BigPackage, BigPackageModel, BigPackageRequest, BigPackageSearch>> logger, IWebHostEnvironment env, IConfiguration configuration) : base(serviceProvider, logger, env)
         {
             this.configuration = configuration;
-            this.catalogueService = serviceProvider.GetRequiredService<IBigPackageService>();
+            this.domainService = serviceProvider.GetRequiredService<IBigPackageService>();
             smallPackageService = serviceProvider.GetRequiredService<ISmallPackageService>();
 
         }
@@ -57,7 +58,7 @@ namespace NhapHangV2.API.Controllers.Catalogue
             bool updateSmallPackageResult = false;
             if (!ModelState.IsValid)
                 throw new AppException(ModelState.GetErrorMessage());
-            var item = await this.catalogueService.GetByIdAsync(itemModel.Id);
+            var item = await this.domainService.GetByIdAsync(itemModel.Id);
             if (item == null)
                 throw new KeyNotFoundException("Bao lớn không tồn tại");
             switch (itemModel.Status ?? 0)
@@ -81,7 +82,7 @@ namespace NhapHangV2.API.Controllers.Catalogue
             }
 
             mapper.Map(itemModel, item);
-            success = await this.catalogueService.UpdateAsync(item);
+            success = await this.domainService.UpdateAsync(item);
             if (success)
                 appDomainResult.ResultCode = (int)HttpStatusCode.OK;
             else
@@ -104,7 +105,7 @@ namespace NhapHangV2.API.Controllers.Catalogue
             // ------------------------------------------LẤY THÔNG TIN XUẤT EXCEL
 
             // 1. LẤY THÔNG TIN DATA VÀ ĐỔ DATA VÀO TEMPLATE
-            var item = await this.catalogueService.GetByIdAsync(id);
+            var item = await this.domainService.GetByIdAsync(id);
             var itemModel = mapper.Map<BigPackageModel>(item);
             ExcelUtilities excelUtility = new ExcelUtilities();
 
@@ -122,17 +123,17 @@ namespace NhapHangV2.API.Controllers.Catalogue
 
             // 4. LƯU THÔNG TIN FILE BÁO CÁO XUỐNG FOLDER BÁO CÁO
             string fileName = string.Format("{0}-{1}.xlsx", Guid.NewGuid().ToString(), "BigPackage");
-            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, fileName);
+            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME, fileName);
 
             string folderUploadPath = string.Empty;
             var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME);
+            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME);
             string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
 
             FileUtilities.CreateDirectory(folderUploadPath);
             FileUtilities.SaveToPath(fileUploadPath, fileByteReport);
 
-            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
+            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.EXCEL_FOLDER_NAME}/";
             fileResultPath = Path.Combine(currentLinkSite, Path.GetFileName(filePath));
 
             // 5. TRẢ ĐƯỜNG DẪN FILE CHO CLIENT DOWN VỀ

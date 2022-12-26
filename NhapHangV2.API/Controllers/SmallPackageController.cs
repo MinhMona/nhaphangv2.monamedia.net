@@ -1,14 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NhapHangV2.BaseAPI.Controllers;
 using NhapHangV2.Entities;
 using NhapHangV2.Entities.Search;
 using NhapHangV2.Extensions;
@@ -17,8 +14,6 @@ using NhapHangV2.Interface.Services.Catalogue;
 using NhapHangV2.Models;
 using NhapHangV2.Request;
 using NhapHangV2.Utilities;
-using NPOI.HPSF;
-using Org.BouncyCastle.Utilities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -93,82 +88,12 @@ namespace NhapHangV2.API.Controllers
                 smallPackage.FloatingStatus = (int)StatusConfirmSmallPackage.DangChoXacNhan;
                 smallPackage.IMG = itemModel.Images.ElementAt(0);
 
-                //Chuyển hình ảnh từ folder Temp --> folder Chính
-                //List<string> filePaths = new List<string>();
-                //List<string> folderUploadPaths = new List<string>();
-                //List<string> fileUrls = new List<string>();
-
-                //if (itemModel.Images != null && itemModel.Images.Any())
-                //{
-                //    List<string> listIMGOld = new List<string>();
-                //    listIMGOld = smallPackage.IMG.Split(',').ToList();
-
-                //    foreach (var file in itemModel.Images)
-                //    {
-                //        string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, file);
-                //        // ------- START GET URL FOR FILE
-                //        string folderUploadPath = string.Empty;
-                //        var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                //        folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                //        string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                //        // Kiểm tra có tồn tại file trong temp chưa?
-                //        if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                //        {
-                //            FileUtilities.CreateDirectory(folderUploadPath);
-                //            FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                //            folderUploadPaths.Add(fileUploadPath);
-                //            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                //            string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                //                                                                                        // ------- END GET URL FOR FILE
-                //            filePaths.Add(filePath);
-
-                //            //Gán lại cho itemModel để mapper
-                //            fileUrls.Add(fileUrl);
-                //        }
-                //    }
-                //smallPackage.IMG = itemModel.Images.Count > 0 ? string.Join(",", itemModel) : "";
-
-                //    //Xóa thằng cũ đi
-                //    if (listIMGOld.Any())
-                //    {
-                //        foreach (var filePathOld in listIMGOld)
-                //        {
-                //            System.IO.File.Delete(filePathOld);
-                //        }
-                //    }
-                //}
-
-                //Thông báo
-
                 success = await smallPackageService.UpdateAsync(smallPackage);
                 if (success)
                 {
                     appDomainResult.ResultCode = (int)HttpStatusCode.OK;
                 }
-                //if (success)
-                //{
-                //    appDomainResult.ResultCode = (int)HttpStatusCode.OK;
 
-                //    //// Remove file trong thư mục temp
-                //    if (filePaths.Any())
-                //    {
-                //        foreach (var filePath in filePaths)
-                //        {
-                //            System.IO.File.Delete(filePath);
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    if (folderUploadPaths.Any())
-                //    {
-                //        foreach (var folderUploadPath in folderUploadPaths)
-                //        {
-                //            System.IO.File.Delete(folderUploadPath);
-                //        }
-                //    }
-                //    throw new Exception("Lỗi trong quá trình xử lý");
-                //}
                 appDomainResult.Success = success;
             }
             else
@@ -326,26 +251,47 @@ namespace NhapHangV2.API.Controllers
 
                         // Kiểm tra item có tồn tại chưa?
                         var smallPackageCheck = await smallPackageService.GetSingleAsync(e => e.OrderTransactionCode == item.OrderTransactionCode);
-                        if (smallPackageCheck != null) //Tồn tại
-                        {
-                            item.UID = smallPackageCheck.UID;
-                            item.MainOrderId = smallPackageCheck.MainOrderId;
-                            item.TransportationOrderId = smallPackageCheck.TransportationOrderId;
-                            item.OrderTransactionCode = smallPackageCheck.OrderTransactionCode + "-" + currentDate.Second.ToString();
-                        }
+                        if (smallPackageCheck != null)
+                            throw new AppException("Mã vận đã tồn tại");
                         else
                         {
-                            if (string.IsNullOrEmpty(item.OrderTransactionCode))
-                            {
-                                item.OrderTransactionCode = currentDate.Year.ToString() +
-                                    currentDate.Month.ToString() +
-                                    currentDate.Day.ToString() +
-                                    currentDate.Hour.ToString() +
-                                    currentDate.Minute.ToString() +
-                                    currentDate.Second.ToString() +
-                                    currentDate.Millisecond.ToString();
-                            }
+                            if (string.IsNullOrEmpty(item.OrderTransactionCode) || string.IsNullOrWhiteSpace(item.OrderTransactionCode))
+                                throw new AppException("Mã vận đơn không hợp lệ");
                         }
+                        #region Tách mã vận đơn (chưa dùng tới)
+                        //if (smallPackageCheck != null) //Tồn tại
+                        //{
+                        //    item.UID = smallPackageCheck.UID;
+                        //    item.MainOrderId = smallPackageCheck.MainOrderId;
+                        //    item.TransportationOrderId = smallPackageCheck.TransportationOrderId;
+                        //    string newOrderTransactionCode = smallPackageCheck.OrderTransactionCode + "-" + currentDate.Second.ToString();
+                        //    item.OrderTransactionCode = newOrderTransactionCode;
+                        //    if (item.TransportationOrderId > 0)
+                        //    {
+                        //        var orderTrans = await transportationOrderService.GetByIdAsync(item.TransportationOrderId ?? 0);
+                        //        orderTrans.OrderTransactionCode = newOrderTransactionCode;
+                        //        bool updateResult = await transportationOrderService.UpdateFieldAsync(orderTrans, new Expression<Func<TransportationOrder, object>>[]
+                        //        {
+                        //            t => t.OrderTransactionCode
+                        //        });
+                        //        if (!updateResult)
+                        //            throw new AppException("Không thể cập nhật mã vận đơn cho đơn ký gửi");
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    if (string.IsNullOrEmpty(item.OrderTransactionCode))
+                        //    {
+                        //        item.OrderTransactionCode = currentDate.Year.ToString() +
+                        //            currentDate.Month.ToString() +
+                        //            currentDate.Day.ToString() +
+                        //            currentDate.Hour.ToString() +
+                        //            currentDate.Minute.ToString() +
+                        //            currentDate.Second.ToString() +
+                        //            currentDate.Millisecond.ToString();
+                        //    }
+                        //}
+                        #endregion
                     }
 
                     //Kiểm hàng VN
@@ -358,44 +304,16 @@ namespace NhapHangV2.API.Controllers
                         var smallPackageCheck = await smallPackageService.GetSingleAsync(e => e.OrderTransactionCode == item.OrderTransactionCode);
                         if (smallPackageCheck != null) //Tồn tại
                         {
-                            item.UID = smallPackageCheck.UID;
-                            item.MainOrderId = smallPackageCheck.MainOrderId;
-                            item.TransportationOrderId = smallPackageCheck.TransportationOrderId;
-                            item.OrderTransactionCode = smallPackageCheck.OrderTransactionCode + "-" + currentDate.Second.ToString();
+                            //item.UID = smallPackageCheck.UID;
+                            //item.MainOrderId = smallPackageCheck.MainOrderId;
+                            //item.TransportationOrderId = smallPackageCheck.TransportationOrderId;
+                            //item.OrderTransactionCode = smallPackageCheck.OrderTransactionCode + "-" + currentDate.Second.ToString();
+                            throw new AppException("Mã vận đã tồn tại");
                         }
                         else
-                            throw new KeyNotFoundException("Item không tồn tại");
+                            throw new KeyNotFoundException("Mã vận đơn không tồn tại");
                     }
 
-                    #region Upload ảnh code cũ
-                    //Hình ảnh (1 hình ảnh)
-                    //List<string> filePaths = new List<string>();
-                    //List<string> folderUploadPaths = new List<string>();
-                    //string file = itemModel.IMG;
-                    //if (!string.IsNullOrEmpty(file))
-                    //{
-                    //    string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, file);
-                    //    // ------- START GET URL FOR FILE
-                    //    string folderUploadPath = string.Empty;
-                    //    var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //    folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //    string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //    // Kiểm tra có tồn tại file trong temp chưa?
-                    //    if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //    {
-                    //        FileUtilities.CreateDirectory(folderUploadPath);
-                    //        FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //        folderUploadPaths.Add(fileUploadPath);
-                    //        var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //        string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                    // ------- END GET URL FOR FILE
-                    //        filePaths.Add(filePath);
-
-                    //        //Gán lại cho itemModel để mapper
-                    //        item.IMG = fileUrl;
-                    //    }
-                    //}
-                    #endregion
 
                     success = await smallPackageService.CreateAsync(item);
                     if (success)
@@ -405,31 +323,9 @@ namespace NhapHangV2.API.Controllers
 
                         appDomainResult.Data = mapper.Map<List<SmallPackageModel>>(items);
                         appDomainResult.ResultCode = (int)HttpStatusCode.OK;
-                        #region Response cũ
-                        //// Remove file trong thư mục temp
-                        //if (filePaths.Any())
-                        //{
-                        //    foreach (var filePath in filePaths)
-                        //    {
-                        //        System.IO.File.Delete(filePath);
-                        //    }
-                        //}
-                        #endregion
+
 
                     }
-                    #region Response cũ
-                    //else
-                    //{
-                    //    if (folderUploadPaths.Any())
-                    //    {
-                    //        foreach (var folderUploadPath in folderUploadPaths)
-                    //        {
-                    //            System.IO.File.Delete(folderUploadPath);
-                    //        }
-                    //    }
-                    //    throw new Exception("Lỗi trong quá trình xử lý");
-                    //}
-                    #endregion
 
                     appDomainResult.Success = success;
                 }
@@ -644,17 +540,17 @@ namespace NhapHangV2.API.Controllers
 
             // 4. LƯU THÔNG TIN FILE BÁO CÁO XUỐNG FOLDER BÁO CÁO
             string fileName = string.Format("{0}-{1}.xlsx", Guid.NewGuid().ToString(), "SmallPackage");
-            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, fileName);
+            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME, fileName);
 
             string folderUploadPath = string.Empty;
             var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME);
+            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME);
             string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
 
             FileUtilities.CreateDirectory(folderUploadPath);
             FileUtilities.SaveToPath(fileUploadPath, fileByteReport);
 
-            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
+            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.EXCEL_FOLDER_NAME}/";
             fileResultPath = Path.Combine(currentLinkSite, Path.GetFileName(filePath));
 
             // 5. TRẢ ĐƯỜNG DẪN FILE CHO CLIENT DOWN VỀ

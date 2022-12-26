@@ -53,9 +53,11 @@ namespace NhapHangV2.Models
                     case (int)StatusOrderContants.ChoThanhToan:
                         return "Chờ thanh toán";
                     case (int)StatusOrderContants.KhachDaThanhToan:
-                        return "Khách đã thanh toán";
+                        return "Đã thanh toán";
                     case (int)StatusOrderContants.DaHoanThanh:
                         return "Đã hoàn thành";
+                    case (int)StatusOrderContants.DaKhieuNai:
+                        return "Đã khiếu nại";
                     default:
                         return string.Empty;
                 }
@@ -81,7 +83,7 @@ namespace NhapHangV2.Models
                     case (int)TypeOrder.DonKyGui:
                         return "Đơn hàng vận chuyển hộ";
                     case (int)TypeOrder.KhongXacDinh:
-                        return "Chưa xác định";
+                        return "Đơn mua hộ khác";
                     default:
                         return string.Empty;
                 }
@@ -417,6 +419,11 @@ namespace NhapHangV2.Models
         public decimal? FeeWeightCK { get; set; }
 
         /// <summary>
+        /// Phần trăm chiết khẩu phí mua hàng
+        /// </summary>
+        public decimal? FeeBuyProCK { get; set; } = 0;
+
+        /// <summary>
         /// Phí vận chuyển TQ - VN - Cân nặng
         /// </summary>
         public decimal? TQVNWeight { get; set; }
@@ -486,6 +493,11 @@ namespace NhapHangV2.Models
         /// Ngày hoàn thành
         /// </summary>
         public DateTime? CompleteDate { get; set; }
+
+        /// <summary>
+        /// Ngày hủy
+        /// </summary>
+        public DateTime? CancelDate { get; set; }
 
         /// <summary>
         /// Ngày dự kiến

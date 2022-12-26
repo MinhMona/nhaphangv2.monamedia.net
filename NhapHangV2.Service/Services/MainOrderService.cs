@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
+using ClosedXML.Excel;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NhapHangV2.Entities;
 using NhapHangV2.Entities.Catalogue;
+using NhapHangV2.Entities.DomainEntities;
 using NhapHangV2.Entities.Search;
+using NhapHangV2.Entities.SQLModels;
 using NhapHangV2.Extensions;
 using NhapHangV2.Interface.DbContext;
 using NhapHangV2.Interface.Services;
@@ -12,23 +16,36 @@ using NhapHangV2.Interface.Services.Auth;
 using NhapHangV2.Interface.Services.Catalogue;
 using NhapHangV2.Interface.Services.Configuration;
 using NhapHangV2.Interface.UnitOfWork;
+using NhapHangV2.Models;
+using NhapHangV2.Models.ExcelModels;
 using NhapHangV2.Service.Services.DomainServices;
 using NhapHangV2.Utilities;
 using NPOI.SS.Formula.Functions;
+using NPOI.SS.UserModel;
+using Org.BouncyCastle.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static NhapHangV2.Utilities.CoreContants;
 using SqlCommand = Microsoft.Data.SqlClient.SqlCommand;
 using SqlConnection = Microsoft.Data.SqlClient.SqlConnection;
+using SqlParameter = Microsoft.Data.SqlClient.SqlParameter;
 
 namespace NhapHangV2.Service.Services
 {
+
     public class MainOrderService : DomainService<MainOrder, MainOrderSearch>, IMainOrderService
     {
+        private readonly string[] MainOrderExcelColumns = new string[] { "OrderID", "Username", "Tổng tiền", "Tiền đã trả",
+            "Tiền còn lại", "Tiền hàng trên Web", "Phí dịch vụ", "Phí ship TQ", "TPhí kiểm hàng", "Phí đóng gỗ",
+            "Phí bảo hiểm", "Phụ phí", "Phí vận chuyển", "Cân nặng","Trạng thái", "NV kinh doanh", "NV đặt hàng",
+            "Ngày tạo","Ngày đặt cọc", "Ngày mua hàng", "Ngày về kho TQ", "Ngày về kho VN","Ngày hoàn thành"
+        };
+
         protected readonly IAppDbContext Context;
         protected readonly IOrderShopTempService orderShopTempService;
         protected readonly IUserService userService;
@@ -38,10 +55,12 @@ namespace NhapHangV2.Service.Services
         private readonly INotificationTemplateService notificationTemplateService;
         private readonly ISendNotificationService sendNotificationService;
         private readonly ISMSEmailTemplateService sMSEmailTemplateService;
+        private readonly IServiceProvider serviceProvider;
 
         public MainOrderService(IServiceProvider serviceProvider, IAppUnitOfWork unitOfWork, IMapper mapper, IAppDbContext Context) : base(unitOfWork, mapper)
         {
             this.Context = Context;
+            this.serviceProvider = serviceProvider;
             orderShopTempService = serviceProvider.GetRequiredService<IOrderShopTempService>();
             userService = serviceProvider.GetRequiredService<IUserService>();
             configurationsService = serviceProvider.GetRequiredService<IConfigurationsService>();
@@ -50,7 +69,6 @@ namespace NhapHangV2.Service.Services
             notificationTemplateService = serviceProvider.GetRequiredService<INotificationTemplateService>();
             sendNotificationService = serviceProvider.GetRequiredService<ISendNotificationService>();
             sMSEmailTemplateService = serviceProvider.GetRequiredService<ISMSEmailTemplateService>();
-
         }
 
         protected override string GetStoreProcName()
@@ -193,7 +211,7 @@ namespace NhapHangV2.Service.Services
                                 var emailTemplate = await sMSEmailTemplateService.GetByCodeAsync("ADHDC");
                                 string subject = emailTemplate.Subject;
                                 string emailContent = string.Format(emailTemplate.Body);
-                                await sendNotificationService.SendNotification(notificationSettingDC, notiTemplateAdmin, item.Id.ToString(), $"/order/order-list/{item.Id}", "", null, subject, emailContent);
+                                await sendNotificationService.SendNotification(notificationSettingDC, notiTemplateAdmin, item.Id.ToString(), $"/manager/order/order-list/{item.Id}", "", null, subject, emailContent);
                             }
                             break;
 
@@ -284,7 +302,7 @@ namespace NhapHangV2.Service.Services
                                 var emailTemplate = await sMSEmailTemplateService.GetByCodeAsync("ADHDTT");
                                 string subject = emailTemplate.Subject;
                                 string emailContent = string.Format(emailTemplate.Body);
-                                await sendNotificationService.SendNotification(notificationSettingTT, notiTemplate, item.Id.ToString(), $"/order/order-list/{item.Id}", "", null, subject, emailContent);
+                                await sendNotificationService.SendNotification(notificationSettingTT, notiTemplate, item.Id.ToString(), $"/manager/order/order-list/{item.Id}", "", null, subject, emailContent);
                             }
 
                             break;
@@ -341,7 +359,7 @@ namespace NhapHangV2.Service.Services
                         var notiTemplate = await notificationTemplateService.GetByIdAsync(notiTemplateId);
                         var notificationSetting = await notificationSettingService.GetByIdAsync(5);
 
-                        await sendNotificationService.SendNotification(notificationSetting, notiTemplate, data.Id.ToString(), $"/order/order-list/{data.Id}", "", null, string.Empty, string.Empty);
+                        await sendNotificationService.SendNotification(notificationSetting, notiTemplate, data.Id.ToString(), $"/manager/order/order-list/{data.Id}", "", null, string.Empty, string.Empty);
                     }
 
                     await dbContextTransaction.CommitAsync();
@@ -770,6 +788,7 @@ namespace NhapHangV2.Service.Services
             //Cập nhật thông tin của đơn hàng
             if (item.Status == (int)StatusOrderContants.Huy)
             {
+                item.CancelDate = currentDate;
                 if (item.Deposit > 0)
                 {
                     //Cập nhật số tiền trong account
@@ -793,7 +812,7 @@ namespace NhapHangV2.Service.Services
                     {
                         MainOrderId = item.Id,
                         UID = userMainOrder.Id,
-                        Status = 4, //Chưa hiểu
+                        Status = (int?)StatusPayOrderHistoryContants.HuyHoanTien,
                         Amount = item.Deposit,
                         Type = (int?)TypePayOrderHistoryContants.ViDienTu,
                     });
@@ -816,19 +835,6 @@ namespace NhapHangV2.Service.Services
 
             item.TQVNWeight = item.OrderWeight = totalWeight;
             item.FeeWeight = feeWeight;
-
-            //Tính tổng tiền VNĐ
-            //decimal? totalPriceVNDFn = 0;
-            //if (item.FeeWeight != null) totalPriceVNDFn += item.FeeWeight;
-            //if (item.FeeShipCN != null) totalPriceVNDFn += item.FeeShipCN;
-            //if (item.FeeBuyPro != null) totalPriceVNDFn += item.FeeBuyPro;
-            //if (item.IsCheckProductPrice != null) totalPriceVNDFn += item.IsCheckProductPrice;
-            //if (item.IsPackedPrice != null) totalPriceVNDFn += item.IsPackedPrice;
-            //if (item.IsFastDeliveryPrice != null) totalPriceVNDFn += item.IsFastDeliveryPrice;
-            //if (item.PriceVND != null) totalPriceVNDFn += item.PriceVND;
-            //if (item.Surcharge != null) totalPriceVNDFn += item.Surcharge;
-            //if (item.InsuranceMoney != null) totalPriceVNDFn += item.InsuranceMoney;
-            //item.TotalPriceVND = totalPriceVNDFn;
 
             item.TotalPriceVND = (item.FeeWeight ?? 0) + (item.FeeShipCN ?? 0)
                 + (item.FeeBuyPro ?? 0) + (item.IsCheckProductPrice ?? 0)
@@ -862,7 +868,7 @@ namespace NhapHangV2.Service.Services
                     var emailTemplateTQ = await sMSEmailTemplateService.GetByCodeAsync("UDDVTQ");
                     string subjectTQ = emailTemplateTQ.Subject;
                     string emailContentTQ = string.Format(emailTemplateTQ.Body);
-                    await sendNotificationService.SendNotification(notiicationSettingTQ, notiTemplateTQ, item.Id.ToString(), $"/order/order-list/{item.Id}", $"/user/order-list/{item.Id}", item.UID, subjectTQ, emailContentTQ);
+                    await sendNotificationService.SendNotification(notiicationSettingTQ, notiTemplateTQ, item.Id.ToString(), $"/manager/order/order-list/{item.Id}", $"/user/order-list/{item.Id}", item.UID, subjectTQ, emailContentTQ);
                     break;
                 case (int)StatusOrderContants.DaVeKhoVN:
                     item.DateVN = currentDate;
@@ -873,7 +879,7 @@ namespace NhapHangV2.Service.Services
                     var emailTemplateVN = await sMSEmailTemplateService.GetByCodeAsync("UDDVVN");
                     string subjectVN = emailTemplateVN.Subject;
                     string emailContentVN = string.Format(emailTemplateVN.Body);
-                    await sendNotificationService.SendNotification(notiicationSettingVN, notiTemplateVN, item.Id.ToString(), $"/order/order-list/{item.Id}", $"/user/order-list/{item.Id}", item.UID, subjectVN, emailContentVN);
+                    await sendNotificationService.SendNotification(notiicationSettingVN, notiTemplateVN, item.Id.ToString(), $"/manager/order/order-list/{item.Id}", $"/user/order-list/{item.Id}", item.UID, subjectVN, emailContentVN);
                     break;
                 case (int)StatusOrderContants.DaHoanThanh:
                     item.CompleteDate = currentDate;
@@ -903,38 +909,74 @@ namespace NhapHangV2.Service.Services
             var smallPackages = item.SmallPackages;
             var user = await unitOfWork.Repository<Users>().GetQueryable().Where(e => !e.Deleted && e.Id == item.UID).FirstOrDefaultAsync();
             var userLevel = await unitOfWork.Repository<UserLevel>().GetQueryable().Where(e => !e.Deleted && e.Id == user.LevelId).FirstOrDefaultAsync();
-            decimal? ckFeeWeight = userLevel == null ? 1 : userLevel.FeeWeight;
-
+            decimal? ckFeeWeight = userLevel == null ? 0 : userLevel.FeeWeight;
+            //decimal? ckFeeWeight = userLevel == null ? 1 : userLevel.FeeWeight;
+            item.FeeWeightCK = ckFeeWeight;
             decimal? totalWeight = smallPackages.Sum(e => e.PayableWeight);
 
-            //Fix lấy warehouseFee 
-            var warehouseFee = await unitOfWork.Repository<WarehouseFee>().GetQueryable()
-                .Where(e => !e.Deleted &&
-                e.WarehouseFromId == item.FromPlace &&
-                e.WarehouseId == item.ReceivePlace &&
-                e.ShippingTypeToWareHouseId == item.ShippingType &&
-                e.IsHelpMoving == false &&
-                (e.WeightFrom < totalWeight && e.WeightTo >= totalWeight)).FirstOrDefaultAsync();
+            #region Tính phí vận chuyển của tổng cân nặng
+            ////Fix lấy warehouseFee 
+            //var warehouseFee = await unitOfWork.Repository<WarehouseFee>().GetQueryable()
+            //    .Where(e => !e.Deleted &&
+            //    e.WarehouseFromId == item.FromPlace &&
+            //    e.WarehouseId == item.ReceivePlace &&
+            //    e.ShippingTypeToWareHouseId == item.ShippingType &&
+            //    e.IsHelpMoving == false &&
+            //    (e.WeightFrom < totalWeight && e.WeightTo >= totalWeight)).FirstOrDefaultAsync();
 
-            decimal? warehouseFeePrice = warehouseFee == null ? 1 : warehouseFee.Price;
+            //decimal? warehouseFeePrice = warehouseFee == null ? 1 : warehouseFee.Price;
 
-            decimal? feeWeight = 0;
-            if (user.FeeTQVNPerWeight > 0)
+            //decimal? feeWeight = 0;
+            //if (user.FeeTQVNPerWeight > 0)
+            //{
+            //    feeWeight = totalWeight * user.FeeTQVNPerWeight;
+            //    smallPackages.ForEach(e => { e.PriceWeight = user.FeeTQVNPerWeight; e.DonGia = user.FeeTQVNPerWeight; e.TotalPrice = totalWeight * warehouseFeePrice; });
+            //}
+            //else
+            //{
+            //    feeWeight = totalWeight * warehouseFeePrice;
+            //    smallPackages.ForEach(e => { e.PriceWeight = warehouseFeePrice; e.DonGia = warehouseFeePrice; e.TotalPrice = totalWeight * warehouseFeePrice; });
+            //}
+            #endregion
+            #region Tính phí vận chuyển của từng mã vận đơn rồi cộng lại
+            decimal? totalFeeWeight = 0;
+            foreach (var smallPackage in smallPackages)
             {
-                feeWeight = totalWeight * user.FeeTQVNPerWeight;
-                smallPackages.ForEach(e => { e.PriceWeight = user.FeeTQVNPerWeight; e.DonGia = user.FeeTQVNPerWeight; e.TotalPrice = totalWeight * warehouseFeePrice; });
-            }
-            else
-            {
-                feeWeight = totalWeight * warehouseFeePrice;
-                smallPackages.ForEach(e => { e.PriceWeight = warehouseFeePrice; e.DonGia = warehouseFeePrice; e.TotalPrice = totalWeight * warehouseFeePrice; });
-            }
+                decimal? payableWeight = smallPackage.PayableWeight;
+                decimal? feeWeight = 0;
 
-            decimal? feeWeightDiscount = feeWeight * ckFeeWeight / 100;
-            feeWeight -= feeWeightDiscount;
+                var warehouseFee = await unitOfWork.Repository<WarehouseFee>().GetQueryable()
+                    .Where(e => !e.Deleted &&
+                    e.WarehouseFromId == item.FromPlace &&
+                    e.WarehouseId == item.ReceivePlace &&
+                    e.ShippingTypeToWareHouseId == item.ShippingType &&
+                    e.IsHelpMoving == false &&
+                    (e.WeightFrom < payableWeight && e.WeightTo >= payableWeight)).FirstOrDefaultAsync();
+
+                decimal? warehouseFeePrice = warehouseFee == null ? 1 : warehouseFee.Price;
+
+                if (user.FeeTQVNPerWeight > 0)
+                {
+                    feeWeight = payableWeight * user.FeeTQVNPerWeight;
+                    smallPackage.PriceWeight = user.FeeTQVNPerWeight;
+                    smallPackage.DonGia = user.FeeTQVNPerWeight;
+                    smallPackage.TotalPrice = feeWeight;
+                }
+                else
+                {
+                    feeWeight = payableWeight * warehouseFeePrice;
+                    smallPackage.PriceWeight = warehouseFeePrice;
+                    smallPackage.DonGia = warehouseFeePrice;
+                    smallPackage.TotalPrice = payableWeight * warehouseFeePrice;
+                }
+                totalFeeWeight += feeWeight;
+            }
+            #endregion
+            decimal? feeWeightDiscount = totalFeeWeight * ckFeeWeight / 100;
+            totalFeeWeight -= feeWeightDiscount;
 
             item.TQVNWeight = item.OrderWeight = Math.Round(totalWeight.Value, 2);
-            item.FeeWeight = Math.Round(feeWeight.Value, 2);
+            item.FeeWeight = Math.Round(totalFeeWeight.Value, 2);
 
             decimal? totalPriceVNDFn = 0;
             if (item.FeeWeight != null) totalPriceVNDFn += item.FeeWeight;
@@ -992,58 +1034,6 @@ namespace NhapHangV2.Service.Services
             {
                 TotalOrderPrice = mainOrders.Sum(x => x.TotalPriceVND) ?? 0,
                 TotalPaidPrice = mainOrders.Sum(x => x.Deposit) ?? 0
-            };
-        }
-
-        public async Task<MainOrdersInfor> GetMainOrdersInforAsync(int UID, int orderType)
-        {
-            var mainOrders = await unitOfWork.Repository<MainOrder>().GetQueryable().Where(x => x.UID == UID && x.OrderType == orderType).ToListAsync();
-            int totalOrders = mainOrders.Count();
-            int unpaidOrders = mainOrders.Where(x => x.Status == (int)StatusOrderContants.ChuaDatCoc).ToList().Count;
-            int paidOrders = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaDatCoc).ToList().Count;
-            int placedOrders = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaMuaHang).ToList().Count;
-            int inChinaOrders = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaVeKhoTQ).ToList().Count;
-            int inVietnamOrders = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaVeKhoVN).ToList().Count;
-            int recievedOrders = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaHoanThanh).ToList().Count;
-
-            return new MainOrdersInfor
-            {
-                TotalOrders = totalOrders,
-                TotalUnpaidOrders = unpaidOrders,
-                ToTalPaidOrders = paidOrders,
-                ToTalPlacedOrders = placedOrders,
-                TotalInChinaOrders = inChinaOrders,
-                TotalInVietnamOrders = inVietnamOrders,
-                TotalReceivedOrders = recievedOrders
-            };
-        }
-
-        public async Task<MainOrdersAmount> GetMainOrdersAmountAsync(int UID, int orderType)
-        {
-            var mainOrders = await unitOfWork.Repository<MainOrder>().GetQueryable().Where(x => x.UID == UID && x.OrderType == orderType).ToListAsync();
-
-            decimal? amountNotDelivery = mainOrders.Where(x => x.Status > (int)StatusOrderContants.Huy
-                && x.Status < (int)StatusOrderContants.KhachDaThanhToan)
-                .ToList().Sum(x => x.TotalPriceVND);
-            decimal? amountMustDeposit = mainOrders.Where(x => x.Status == (int)StatusOrderContants.ChuaDatCoc).ToList().Sum(x => x.AmountDeposit);
-            decimal? amountOrderRequireDeposit = mainOrders.Where(x => x.Status == (int)StatusOrderContants.ChuaDatCoc).ToList().Sum(x => x.TotalPriceVND);
-            decimal? amoutWattingToChina = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaMuaHang
-                || x.Status == (int)StatusOrderContants.DaDuyetDon)
-                .ToList()
-                .Sum(x => x.TotalPriceVND);
-            decimal? amountInChina = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaVeKhoTQ).ToList().Sum(x => x.TotalPriceVND);
-            decimal? amountInVietnam = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaVeKhoVN).ToList().Sum(x => x.TotalPriceVND);
-            decimal? amountPay = mainOrders.Where(x => x.Status == (int)StatusOrderContants.DaVeKhoVN).ToList().Sum(x => x.TotalPriceVND + x.FeeInWareHouse - x.Deposit);
-
-            return new MainOrdersAmount
-            {
-                AmountNotDelivery = amountNotDelivery ?? 0,
-                AmountMustDeposit = amountMustDeposit ?? 0,
-                AmountOrderRequireDeposit = amountOrderRequireDeposit ?? 0,
-                AmoutWattingToChina = amoutWattingToChina ?? 0,
-                AmountInChina = amountInChina ?? 0,
-                AmountInVietnam = amountInVietnam ?? 0,
-                AmountPay = amountPay ?? 0
             };
         }
 
@@ -1116,40 +1106,112 @@ namespace NhapHangV2.Service.Services
             }
         }
 
-        public async Task<NumberOfOrders> GetNumberOfOrders(int orderType, int? UID)
+        public NumberOfOrders GetNumberOfOrders(MainOrderSearch mainOrderSearch)
         {
-            var result = new NumberOfOrders();
-            List<int> statusValue = new List<int>();
-            statusValue.Add(-1);
-            foreach (var item in Enum.GetValues(typeof(StatusOrderContants)))
-            {
-                statusValue.Add((int)item);
-            }
+            var storeService = serviceProvider.GetRequiredService<IStoreSqlService<NumberOfOrders>>();
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            sqlParameters.Add(new SqlParameter("@UID", mainOrderSearch.UID));
+            sqlParameters.Add(new SqlParameter("@RoleID", mainOrderSearch.RoleID));
+            sqlParameters.Add(new SqlParameter("@OrderType", mainOrderSearch.OrderType));
+            SqlParameter[] parameters = sqlParameters.ToArray();
+            var data = storeService.GetDataFromStore(parameters, "GetNumberOfOrder");
 
-            int i = 0;
-            foreach (var item in result.GetType().GetProperties())
-            {
-                var listMainOrder = new List<MainOrder>();
-                if (statusValue[i] >= 0)
-                {
-                    if (UID == null)
-                        listMainOrder = await unitOfWork.Repository<MainOrder>().GetQueryable().Where(x => x.Status == statusValue[i] && x.OrderType == orderType && !x.Deleted).ToListAsync();
-                    else
-                        listMainOrder = await unitOfWork.Repository<MainOrder>().GetQueryable().Where(x => x.Status == statusValue[i] && x.OrderType == orderType && !x.Deleted && x.UID == UID).ToListAsync();
-                }
-                else
-                {
-                    if (UID == null)
-                        listMainOrder = await unitOfWork.Repository<MainOrder>().GetQueryable().Where(x => !x.Deleted && x.OrderType == orderType).ToListAsync();
-                    else
-                        listMainOrder = await unitOfWork.Repository<MainOrder>().GetQueryable().Where(x => !x.Deleted && x.OrderType == orderType && x.UID == UID).ToListAsync();
-                }
-                decimal sum = listMainOrder != null ? listMainOrder.Count : 0;
+            return data.FirstOrDefault();
+        }
 
-                item.SetValue(result, sum);
-                i++;
+        public MainOrdersInfor GetMainOrdersInfor(int UID, int orderType)
+        {
+            var storeService = serviceProvider.GetRequiredService<IStoreSqlService<MainOrdersInfor>>();
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            sqlParameters.Add(new SqlParameter("@UID", UID));
+            sqlParameters.Add(new SqlParameter("@OrderType", orderType));
+            SqlParameter[] parameters = sqlParameters.ToArray();
+            var data = storeService.GetDataFromStore(parameters, "GetMainOrdersInfor");
+
+            return data.FirstOrDefault();
+        }
+
+        public MainOrdersAmount GetMainOrdersAmount(int UID, int orderType)
+        {
+            var storeService = serviceProvider.GetRequiredService<IStoreSqlService<MainOrdersAmount>>();
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            sqlParameters.Add(new SqlParameter("@UID", UID));
+            sqlParameters.Add(new SqlParameter("@OrderType", orderType));
+            SqlParameter[] parameters = sqlParameters.ToArray();
+            var data = storeService.GetDataFromStore(parameters, "GetMainOrdersAmount");
+
+            return data.FirstOrDefault();
+        }
+
+        //Code ngu cần sửa lại, dùng cho xuất tất cả
+        public byte[] GetMainOrdersExcel(MainOrderSearch mainOrderSearch)
+        {
+            var storeService = serviceProvider.GetRequiredService<IStoreSqlService<MainOrderExcelModel>>();
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            sqlParameters.Add(new SqlParameter("@UID", mainOrderSearch.UID));
+            sqlParameters.Add(new SqlParameter("@RoleID", mainOrderSearch.RoleID));
+            sqlParameters.Add(new SqlParameter("@Status", mainOrderSearch.Status));
+            sqlParameters.Add(new SqlParameter("@OrderType", mainOrderSearch.OrderType));
+            sqlParameters.Add(new SqlParameter("@FromDate", mainOrderSearch.FromDate));
+            sqlParameters.Add(new SqlParameter("@ToDate", mainOrderSearch.ToDate));
+            SqlParameter[] parameters = sqlParameters.ToArray();
+            var data = storeService.GetDataTableFromStore(parameters, "ExcelMainOrder");
+            using (var workBook = new XLWorkbook())
+            {
+                var worksheet = workBook.Worksheets.Add();
+                worksheet.ColumnWidth = 20;
+                var currentRow = 1;
+                for (int i = 0; i < MainOrderExcelColumns.Length; i++)
+                {
+                    worksheet.Cell(currentRow, i + 1).Style.Font.Bold = true;
+                    worksheet.Cell(currentRow, i + 1).Style.Font.FontSize = 14;
+                    worksheet.Cell(currentRow, i + 1).Value = MainOrderExcelColumns[i];
+                }
+                foreach (DataRow item in data.Rows)
+                {
+                    currentRow++;
+                    worksheet.Cell(currentRow, 1).Value = item["Id"].ToString();
+                    worksheet.Cell(currentRow, 2).Value = item["UserName"].ToString();
+                    worksheet.Cell(currentRow, 3).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 3).Value = item["TotalPriceVND"];
+                    worksheet.Cell(currentRow, 4).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 4).Value = item["Deposit"];
+                    worksheet.Cell(currentRow, 5).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 5).Value = item["RemainingAmount"];
+                    worksheet.Cell(currentRow, 6).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 6).Value = item["PriceVND"];
+                    worksheet.Cell(currentRow, 7).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 7).Value = item["FeeBuyProPT"];
+                    worksheet.Cell(currentRow, 8).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 8).Value = item["FeeShipCN"];
+                    worksheet.Cell(currentRow, 9).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 9).Value = item["IsCheckProductPrice"];
+                    worksheet.Cell(currentRow, 10).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 10).Value = item["IsPackedPrice"];
+                    worksheet.Cell(currentRow, 11).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 11).Value = item["InsuranceMoney"];
+                    worksheet.Cell(currentRow, 12).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 12).Value = item["Surcharge"];
+                    worksheet.Cell(currentRow, 13).Style.NumberFormat.Format = "#,##0";
+                    worksheet.Cell(currentRow, 13).Value = item["FeeWeight"];
+                    worksheet.Cell(currentRow, 14).Value = item["OrderWeight"].ToString();
+                    worksheet.Cell(currentRow, 15).Value = item["StatusName"].ToString();
+                    worksheet.Cell(currentRow, 16).Value = item["SalerUserName"].ToString();
+                    worksheet.Cell(currentRow, 17).Value = item["OrdererUserName"].ToString();
+                    worksheet.Cell(currentRow, 18).Value = item["Created"].ToString();
+                    worksheet.Cell(currentRow, 19).Value = item["DepositDate"].ToString();
+                    worksheet.Cell(currentRow, 20).Value = item["DateBuy"].ToString();
+                    worksheet.Cell(currentRow, 21).Value = item["DateTQ"].ToString();
+                    worksheet.Cell(currentRow, 22).Value = item["DateVN"].ToString();
+                    worksheet.Cell(currentRow, 23).Value = item["CompleteDate"].ToString();
+                }
+                using (var stream = new MemoryStream())
+                {
+                    workBook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return content;
+                }
             }
-            return result;
         }
     }
 }

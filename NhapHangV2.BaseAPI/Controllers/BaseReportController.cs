@@ -95,17 +95,17 @@ namespace NhapHangV2.BaseAPI.Controllers
 
             // 4. LƯU THÔNG TIN FILE BÁO CÁO XUỐNG FOLDER BÁO CÁO
             string fileName = string.Format("{0}-{1}.xlsx", Guid.NewGuid().ToString(), GetReportName());
-            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, fileName);
+            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME, fileName);
 
             string folderUploadPath = string.Empty;
             var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME);
+            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME);
             string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
 
             FileUtilities.CreateDirectory(folderUploadPath);
             FileUtilities.SaveToPath(fileUploadPath, fileByteReport);
 
-            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
+            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.EXCEL_FOLDER_NAME}/";
             fileResultPath = Path.Combine(currentLinkSite, Path.GetFileName(filePath));
 
             // 5. TRẢ ĐƯỜNG DẪN FILE CHO CLIENT DOWN VỀ

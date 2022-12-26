@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NhapHangV2.Entities\NhapHangV2.Entities.csproj" />
+    <ProjectReference Include="..\NhapHangV2.Models\NhapHangV2.Models.csproj" />
   </ItemGroup>
 
 </Project>

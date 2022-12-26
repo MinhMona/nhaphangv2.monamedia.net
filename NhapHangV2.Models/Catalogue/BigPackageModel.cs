@@ -48,7 +48,7 @@ namespace NhapHangV2.Models.Catalogue
         /// <summary>
         /// Tổng kiện
         /// </summary>
-        public decimal? Total { get; set; }
+        public int? Total { get; set; }
 
         public List<SmallPackageModel> SmallPackages { get; set; }
     }

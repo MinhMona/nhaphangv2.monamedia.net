@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="BarcodeLib" Version="2.3.0" />
+    <PackageReference Include="ClosedXML" Version="0.97.0" />
     <PackageReference Include="EPPlus" Version="5.8.5" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.13" />
@@ -19,6 +20,7 @@
     <ProjectReference Include="..\NhapHangV2.Entities\NhapHangV2.Entities.csproj" />
     <ProjectReference Include="..\NhapHangV2.Extensions\NhapHangV2.Extensions.csproj" />
     <ProjectReference Include="..\NhapHangV2.Interface\NhapHangV2.Interface.csproj" />
+    <ProjectReference Include="..\NhapHangV2.Models\NhapHangV2.Models.csproj" />
   </ItemGroup>
 
 </Project>

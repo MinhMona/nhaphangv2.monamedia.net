@@ -67,6 +67,10 @@ namespace NhapHangV2.Models
         public string IMG { get; set; }
 
         /// <summary>
+        /// Số đơn 
+        /// </summary>
+        public int? TotalStatus { get; set; }
+        /// <summary>
         /// Số đơn chờ duyệt
         /// </summary>
         public int? TotalStatus1 { get; set; }

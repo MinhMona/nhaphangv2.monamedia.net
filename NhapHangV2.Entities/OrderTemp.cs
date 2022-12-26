@@ -26,13 +26,13 @@ namespace NhapHangV2.Entities
         /// <summary>
         /// Giá gốc (tệ)
         /// </summary>
-        [Column(TypeName = "decimal(18,2)")] 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? PriceOrigin { get; set; } = 0;
 
         /// <summary>
         /// Giá khuyến mãi (tệ)
         /// </summary>
-        [Column(TypeName = "decimal(18,2)")] 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? PricePromotion { get; set; } = 0;
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace NhapHangV2.Entities
         /// <summary>
         /// Cân nặng
         /// </summary>
-        [Column(TypeName = "decimal(18,2)")] 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? Weight { get; set; } = 0;
 
         /// <summary>
@@ -156,6 +156,11 @@ namespace NhapHangV2.Entities
         public string ImageOrigin { get; set; } = string.Empty;
 
         /// <summary>
+        /// Số lượng sản phẩm tối thiểu
+        /// </summary>
+        public int MinimumQuantity { get; set; }
+
+        /// <summary>
         /// Tỉ giá
         /// </summary>
         [NotMapped]
@@ -179,7 +184,7 @@ namespace NhapHangV2.Entities
         /// Tiền hàng
         /// </summary>
         [NotMapped]
-        [Column(TypeName = "decimal(18,2)")] 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? EPriceBuy { get; set; } = 0;
 
         /// <summary>

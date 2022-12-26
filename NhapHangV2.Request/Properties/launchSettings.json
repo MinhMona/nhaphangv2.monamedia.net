@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "NhapHangV2.Request": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:64572;http://localhost:64573"
+    }
+  }
+}

@@ -32,5 +32,10 @@ namespace NhapHangV2.Entities.Search
         /// Là thông báo của nhân viên
         /// </summary>
         public bool? OfEmployee { get; set; }
+
+        /// <summary>
+        /// Đã đọc : 0-Tất cả, 1-Đã đọc, 2-Chưa đọc
+        /// </summary>
+        public int? IsRead { get; set; }
     }
 }

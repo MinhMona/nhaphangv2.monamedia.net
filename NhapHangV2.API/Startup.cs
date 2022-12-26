@@ -198,6 +198,12 @@ namespace NhapHangV2.API
                      Path.Combine(env.ContentRootPath, "Upload/QRCode")),
                 RequestPath = "/QRCode",
             });
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(
+                     Path.Combine(env.ContentRootPath, "Upload/Excels")),
+                RequestPath = "/Excels",
+            });
 
             app.UseStaticHttpContext();
 

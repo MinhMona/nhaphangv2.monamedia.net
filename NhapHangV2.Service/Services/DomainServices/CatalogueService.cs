@@ -153,7 +153,7 @@ namespace NhapHangV2.Service.Services.DomainServices
             else
             {
                 return e => !e.Deleted
-            && (string.IsNullOrEmpty(baseSearch.SearchContent)
+                && (string.IsNullOrEmpty(baseSearch.SearchContent)
                 || (e.Code.ToLower().Contains(baseSearch.SearchContent.ToLower())
                 || e.Name.ToLower().Contains(baseSearch.SearchContent.ToLower())
                 || e.Description.ToLower().Contains(baseSearch.SearchContent.ToLower()))

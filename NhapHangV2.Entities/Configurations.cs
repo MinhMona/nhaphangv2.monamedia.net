@@ -126,6 +126,11 @@ namespace NhapHangV2.Entities
         #region Cấu hình tài khoản MXH
 
         /// <summary>
+        /// Link facebook Fanpage
+        /// </summary>
+        public string FacebookFanpage { get; set; } = string.Empty;
+
+        /// <summary>
         /// Link facebook
         /// </summary>
         public string Facebook { get; set; } = string.Empty;

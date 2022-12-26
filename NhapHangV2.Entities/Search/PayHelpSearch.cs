@@ -11,6 +11,11 @@ namespace NhapHangV2.Entities.Search
     {
         public int? UID { get; set; }
 
+        /// <summary>
+        /// UserGroupID
+        /// </summary>
+        public int? RoleID { get; set; }
+
         public int? Status { get; set; }
 
         public DateTime? FromDate { get; set; }

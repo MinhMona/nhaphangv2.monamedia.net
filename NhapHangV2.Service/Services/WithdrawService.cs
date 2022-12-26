@@ -193,7 +193,7 @@ namespace NhapHangV2.Service.Services
                     //Thông báo tới admin và manager có yêu cầu rút tiền
                     var notificationSettingRutTien = await notificationSettingService.GetByIdAsync(4);
                     var notiTemplateRutTien = await notificationTemplateService.GetByIdAsync(5);
-                    await sendNotificationService.SendNotification(notificationSettingRutTien, notiTemplateRutTien, string.Empty, "/money/withdrawal-history", "", null, string.Empty, string.Empty);
+                    await sendNotificationService.SendNotification(notificationSettingRutTien, notiTemplateRutTien, string.Empty, "/manager/money/withdrawal-history", "", null, string.Empty, string.Empty);
                     break;
                 default:
                     break;

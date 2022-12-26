@@ -128,6 +128,17 @@ namespace NhapHangV2.Request
         /// </summary>
         [Column(TypeName = "decimal(18,0)")]
         public decimal? CODFeeTQ { get; set; } = 0;
+
+        /// <summary>
+        /// ID Saler tạo dùm
+        /// </summary>
+        public int? SalerID { get; set; }
+
+        /// <summary>
+        /// Ghi chú hủy đơn
+        /// </summary>
+        public string? CancelReason { get; set; }
+
     }
 
     //public class ShippingOrder

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -93,6 +94,11 @@ namespace NhapHangV2.Request
         /// Phí mua hàng (Phí mua hàng - Chiết khấu (VNĐ))
         /// </summary>
         public decimal? FeeBuyPro { get; set; }
+
+        /// <summary>
+        /// Phần trăm chiết khẩu phí mua hàng
+        /// </summary>
+        public decimal? FeeBuyProCK { get; set; }
 
         /// <summary>
         /// Phí vận chuyển TQ - VN - VNĐ

@@ -10,6 +10,15 @@ namespace NhapHangV2.Entities.Search.Report
     public class PayOrderHistoryReportSearch : BaseSearch
     {
         /// <summary>
+        /// Tài khoản đang đăng nhập
+        /// </summary>
+        public int? UID { get; set; }
+
+        /// <summary>
+        /// UserGroupID
+        /// </summary>
+        public int? RoleID { get; set; }
+        /// <summary>
         /// Từ ngày
         /// </summary>
         public DateTime? FromDate { get; set; }

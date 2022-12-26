@@ -10,7 +10,12 @@ namespace NhapHangV2.Entities.Search
         /// <summary>
         /// Tìm kiếm theo Id (Mã khách hàng)
         /// </summary>
-        public int? Id { get; set; }
+        public int? UID { get; set; }
+
+        /// <summary>
+        /// Tìm kiếm theo Id (Mã khách hàng)
+        /// </summary>
+        public int? RoleID { get; set; }
 
         /// <summary>
         /// Tìm kiếm theo UserName

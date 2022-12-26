@@ -229,6 +229,10 @@ namespace NhapHangV2.Models.AutoMapper
             CreateMap<WarehouseModel, Warehouse>().ReverseMap();
             CreateMap<WarehouseRequest, Warehouse>().ReverseMap();
             CreateMap<PagedList<WarehouseModel>, PagedList<Warehouse>>().ReverseMap();
+
+            CreateMap<CustomerTalkModel, CustomerTalk>().ReverseMap();
+            CreateMap<CustomerTalkRequest, CustomerTalk>().ReverseMap();
+            CreateMap<PagedList<CustomerTalkModel>, PagedList<CustomerTalk>>().ReverseMap();
             #endregion
 
             #region Configuration

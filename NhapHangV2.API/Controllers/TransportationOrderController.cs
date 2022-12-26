@@ -57,9 +57,9 @@ namespace NhapHangV2.API.Controllers
         /// </summary>
         [HttpGet("get-transportations-infor")]
         [AppAuthorize(new int[] { CoreContants.View })]
-        public async Task<AppDomainResult> GetTransportationsInfor(int? UID)
+        public AppDomainResult GetTransportationsInfor([FromQuery] TransportationOrderSearch transportationOrderSearch)
         {
-            var transportationsInfor = await transportationOrderService.GetTransportationsInforAsync(UID);
+            var transportationsInfor = transportationOrderService.GetTransportationsInfor(transportationOrderSearch);
             return new AppDomainResult
             {
                 Data = transportationsInfor,
@@ -79,7 +79,7 @@ namespace NhapHangV2.API.Controllers
             var users = await userService.GetSingleAsync(x => x.Id == UID);
             if (users == null)
                 throw new AppException("Người dùng không tồn tại");
-            var transportationsAmount = await transportationOrderService.GetTransportationsAmountAsync(UID);
+            var transportationsAmount = transportationOrderService.GetTransportationsAmount(UID);
             return new AppDomainResult
             {
                 ResultCode = (int)HttpStatusCode.OK,
@@ -101,9 +101,9 @@ namespace NhapHangV2.API.Controllers
 
             if (ModelState.IsValid)
             {
-                var userRole = await userInGroupService.GetByIdAsync(LoginContext.Instance.CurrentUser.UserId);
-                if (userRole != null && userRole.UserGroupId == 2)
-                    baseSearch.UID = LoginContext.Instance.CurrentUser.UserId;
+                //var userRole = await userInGroupService.GetByIdAsync(LoginContext.Instance.CurrentUser.UserId);
+                //if (userRole != null && userRole.UserGroupId == 2)
+                //    baseSearch.UID = LoginContext.Instance.CurrentUser.UserId;
                 PagedList<TransportationOrder> pagedData = await this.domainService.GetPagedListData(baseSearch);
                 PagedList<TransportationOrderModel> pagedDataModel = mapper.Map<PagedList<TransportationOrderModel>>(pagedData);
 
@@ -132,8 +132,11 @@ namespace NhapHangV2.API.Controllers
             AppDomainResult appDomainResult = new AppDomainResult();
             var user = new Users();
             if (itemModel.UID != null)
+            { //admin tạo dùm
                 user = await userService.GetByIdAsync(itemModel.UID ?? 0);
-            else
+                itemModel.SalerID = LoginContext.Instance.CurrentUser.UserId;
+            }
+            else //user đang login tạo
                 user = await userService.GetByIdAsync(LoginContext.Instance.CurrentUser.UserId);
             bool success = false;
             if (ModelState.IsValid)
@@ -141,7 +144,7 @@ namespace NhapHangV2.API.Controllers
                 List<TransportationOrder> transportationOrders = new List<TransportationOrder>();
 
                 var configurations = await configurationsService.GetSingleAsync();
-                decimal currency = Convert.ToDecimal(configurations.Currency);
+                decimal currency = Convert.ToDecimal(configurations.AgentCurrency);
 
                 if (user.Currency > 0)
                     currency = user.Currency ?? 0;
@@ -168,6 +171,7 @@ namespace NhapHangV2.API.Controllers
                     data.CODFeeTQ = list.FeeShip;
                     data.TotalPriceCNY = list.FeeShip;
                     data.TotalPriceVND = list.FeeShip * currency;
+                    data.SalerID = itemModel.SalerID;
 
                     // Kiểm tra item có tồn tại chưa?
                     var messageUserCheck = await this.domainService.GetExistItemMessage(data);
@@ -227,9 +231,15 @@ namespace NhapHangV2.API.Controllers
                 var item = await this.domainService.GetByIdAsync(itemModel.Id);
                 if (item != null)
                 {
-                    item = await CalculatePrice(itemModel, item);
-                    mapper.Map(itemModel, item);
-
+                    if (itemModel.Status == (int)StatusGeneralTransportationOrder.DaDuyet && itemModel.SmallPackages.Count == 0)
+                    {
+                        item.Status = (int)StatusGeneralTransportationOrder.DaDuyet;
+                    }
+                    else
+                    {
+                        item = await CalculatePrice(itemModel, item);
+                        mapper.Map(itemModel, item);
+                    }
                     success = await this.domainService.UpdateAsync(item);
                     if (success)
                         appDomainResult.ResultCode = (int)HttpStatusCode.OK;
@@ -261,8 +271,11 @@ namespace NhapHangV2.API.Controllers
             if (string.IsNullOrEmpty(note))
                 throw new AppException("Chưa nhập lý do hủy đơn hàng");
             var trans = await this.domainService.GetByIdAsync(id);
-            if (!(await smallPackageService.DeleteAsync(trans.SmallPackageId ?? 0)))
-                throw new AppException("Xóa mã vận đơn thất bại");
+            if (trans.SmallPackageId != null && trans.SmallPackageId > 0)
+            {
+                if (!(await smallPackageService.DeleteAsync(trans.SmallPackageId ?? 0)))
+                    throw new AppException("Xóa mã vận đơn thất bại");
+            }
             // Kiểm tra item có tồn tại chưa?
             var messageUserCheck = await this.domainService.GetExistItemMessage(trans);
             if (!string.IsNullOrEmpty(messageUserCheck))
@@ -457,17 +470,17 @@ namespace NhapHangV2.API.Controllers
 
             // 4. LƯU THÔNG TIN FILE BÁO CÁO XUỐNG FOLDER BÁO CÁO
             string fileName = string.Format("{0}-{1}.xlsx", Guid.NewGuid().ToString(), "TransportationOrder");
-            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, fileName);
+            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME, fileName);
 
             string folderUploadPath = string.Empty;
             var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME);
+            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME);
             string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
 
             FileUtilities.CreateDirectory(folderUploadPath);
             FileUtilities.SaveToPath(fileUploadPath, fileByteReport);
 
-            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
+            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.EXCEL_FOLDER_NAME}/";
             fileResultPath = Path.Combine(currentLinkSite, Path.GetFileName(filePath));
 
             // 5. TRẢ ĐƯỜNG DẪN FILE CHO CLIENT DOWN VỀ
@@ -560,8 +573,9 @@ namespace NhapHangV2.API.Controllers
                     if (priceWeight != transportationOrder.DeliveryPrice)
                     {
                         smallPackage.PriceWeight = priceWeight;
-                        totalVND += priceWeight;
                     }
+                    totalVND += priceWeight;
+
                 }
                 else
                 {

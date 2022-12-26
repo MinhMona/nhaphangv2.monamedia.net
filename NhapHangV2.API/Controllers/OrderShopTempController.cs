@@ -48,6 +48,36 @@ namespace NhapHangV2.API.Controllers
         }
 
         /// <summary>
+        /// Lấy danh sách item phân trang
+        /// Loại thông báo: 0-Yêu cầu nạp,1-Yêu cầu rút, 2-Đơn hàng, 3-Khiếu nại, 4-Tất cả
+        /// </summary>
+        /// <param name="baseSearch"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [AppAuthorize(new int[] { CoreContants.ViewAll })]
+        public override async Task<AppDomainResult> Get([FromQuery] OrderShopTempSearch baseSearch)
+        {
+            AppDomainResult appDomainResult = new AppDomainResult();
+
+            if (ModelState.IsValid)
+            {
+                PagedList<OrderShopTemp> pagedData = await this.domainService.GetPagedListData(baseSearch);
+                pagedData = await orderShopTempService.DeleteOrderShopTempAfter30days(pagedData);
+                PagedList<OrderShopTempModel> pagedDataModel = mapper.Map<PagedList<OrderShopTempModel>>(pagedData);
+
+                appDomainResult = new AppDomainResult
+                {
+                    Data = pagedDataModel,
+                    Success = true,
+                    ResultCode = (int)HttpStatusCode.OK
+                };
+            }
+            else
+                throw new AppException(ModelState.GetErrorMessage());
+
+            return appDomainResult;
+        }
+        /// <summary>
         /// Cập nhật thông tin item
         /// </summary>
         /// <param name="itemModel"></param>
@@ -480,8 +510,8 @@ namespace NhapHangV2.API.Controllers
                         PriceVND = priceVND,
                         PriceCNY = priceCNY,
                         FeeShipCN = feecnship,
-                        CKFeeBuyPro = Math.Round(feebp / currency, 1),
-                        //CKFeeBuyPro = cKFeeBuyPro,
+                        CKFeeBuyPro = Math.Round(feebp / currency, 2),
+                        FeeBuyProCK = cKFeeBuyPro,
                         FeeBuyPro = feebp,
                         FeeWeight = 0,
                         Note = note,
@@ -557,12 +587,12 @@ namespace NhapHangV2.API.Controllers
                 //var item = mapper.Map<OrderShopTemp>(itemModel);
 
                 //old
-                var orderTerm = mapper.Map<OrderTemp>(itemModel);
+                var orderTemp = mapper.Map<OrderTemp>(itemModel);
                 var item = new OrderShopTemp();
                 item.ShopId = itemModel.shop_id;
                 item.ShopName = itemModel.shop_name;
                 item.Site = itemModel.site;
-                item.OrderTemps.Add(orderTerm);
+                item.OrderTemps.Add(orderTemp);
 
                 if (item != null)
                 {
@@ -587,46 +617,6 @@ namespace NhapHangV2.API.Controllers
             return appDomainResult;
         }
 
-        /// <summary>
-        /// Đặt hàng qua Extension
-        /// </summary>
-        /// <param name="itemModel"></param>
-        /// <returns></returns>
-        //[HttpPost]
-        //[AppAuthorize(new int[] { CoreContants.AddNew })]
-        //public override async Task<AppDomainResult> AddItem([FromBody] OrderShopTempRequest itemModel)
-        //{
-        //    AppDomainResult appDomainResult = new AppDomainResult();
-        //    bool success = false;
-        //    if (ModelState.IsValid)
-        //    {
-        //        var orderTemp = mapper.Map<OrderTemp>(itemModel);
-        //        OrderShopTemp item = new OrderShopTemp();
-        //        item.ShopId = itemModel.shop_id;
-        //        item.ShopName = itemModel.shop_name;
-        //        item.Site = itemModel.site;
-        //        item.OrderTemps.Add(orderTemp);
-        //        if (item != null)
-        //        {
-        //            // Kiểm tra item có tồn tại chưa?
-        //            var messageUserCheck = await this.domainService.GetExistItemMessage(item);
-        //            if (!string.IsNullOrEmpty(messageUserCheck))
-        //                throw new KeyNotFoundException(messageUserCheck);
-        //            success = await orderShopTempService.CreateAsync(item);
-        //            if (success)
-        //                appDomainResult.ResultCode = (int)HttpStatusCode.OK;
-        //            else
-        //                throw new Exception("Lỗi trong quá trình xử lý");
-        //            appDomainResult.Success = success;
-        //        }
-        //        else
-        //            throw new KeyNotFoundException("Item không tồn tại");
-        //    }
-        //    else
-        //    {
-        //        throw new AppException(ModelState.GetErrorMessage());
-        //    }
-        //    return appDomainResult;
-        //}
+
     }
 }

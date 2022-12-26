@@ -1,6 +1,7 @@
 ﻿using NhapHangV2.Models.DomainModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -64,6 +65,16 @@ namespace NhapHangV2.Models.Report
         /// Tổng tiền (VNĐ)
         /// </summary>
         public decimal? TotalPriceVND { get; set; }
+
+        /// <summary>
+        /// Tổng tiền thật
+        /// </summary>
+        public decimal? TotalPriceReal { get; set; } = 0;
+
+        /// <summary>
+        /// Tổng tiền hàng
+        /// </summary>
+        public decimal? PriceVND { get; set; } = 0;
 
         /// <summary>
         /// Đặt cọc

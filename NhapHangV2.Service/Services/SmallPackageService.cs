@@ -164,6 +164,8 @@ namespace NhapHangV2.Service.Services
                         item.IsInsurance = mainOrder.IsInsurance;
 
                         listSmallPackageNew.Add(item);
+                        unitOfWork.Repository<MainOrder>().Detach(mainOrder);
+
                     }
                     else if (trans != null) //Đơn hàng vận chuyển hộ (Ký gửi)
                     {
@@ -189,6 +191,8 @@ namespace NhapHangV2.Service.Services
                         item.OrderType = 2;
 
                         listSmallPackageNew.Add(item);
+                        unitOfWork.Repository<TransportationOrder>().Detach(trans);
+
                     }
                     else //Kiện trôi nổi
                     {
@@ -318,9 +322,25 @@ namespace NhapHangV2.Service.Services
                                         transportationOrder.WareHouseFromId = item.WareHouseFromId;
                                         transportationOrder.WareHouseId = item.WareHouseId;
                                         transportationOrder.ShippingTypeId = item.ShippingTypeId;
+                                        transportationOrder.OrderTransactionCode = item.OrderTransactionCode;
+                                        switch (item.Status)
+                                        {
+                                            case (int)StatusSmallPackage.DaVeKhoTQ:
+                                                transportationOrder.Status = (int)StatusGeneralTransportationOrder.VeKhoTQ;
+                                                break;
+                                            case (int)StatusSmallPackage.DaVeKhoVN:
+                                                transportationOrder.Status = (int)StatusGeneralTransportationOrder.VeKhoVN;
+                                                break;
+                                            case (int)StatusSmallPackage.DaThanhToan:
+                                                transportationOrder.Status = (int)StatusGeneralTransportationOrder.DaThanhToan;
+                                                break;
+                                            case (int)StatusSmallPackage.DaHuy:
+                                                transportationOrder.Status = (int)StatusGeneralTransportationOrder.Huy;
+                                                break;
+                                            default:
+                                                break;
+                                        }
 
-                                        //Mặc định về kho VN luôn (vì gán đơn chỉ ở Kiểm kho VN)
-                                        transportationOrder.Status = (int)StatusGeneralTransportationOrder.VeKhoVN;
                                         transportationOrder.Note = item.AssignNote;
 
                                         await unitOfWork.Repository<TransportationOrder>().CreateAsync(transportationOrder);
@@ -447,7 +467,7 @@ namespace NhapHangV2.Service.Services
                                     mainOrderUpdated = mainOrderList.LastOrDefault();
                                     if (historyOrderChanges.Any())
                                         await unitOfWork.Repository<HistoryOrderChange>().CreateAsync(historyOrderChanges);
-                                    await sendNotificationService.SendNotification(notificationSettingTQ, notiTemplateUserTQ, mainOrder.Id.ToString(), $"order/order-list/{mainOrder.Id}", $"/user/order-list/{mainOrder.Id}", mainOrder.UID, string.Empty, string.Empty);
+                                    await sendNotificationService.SendNotification(notificationSettingTQ, notiTemplateUserTQ, mainOrder.Id.ToString(), $"/manager/order/order-list/{mainOrder.Id}", $"/user/order-list/{mainOrder.Id}", mainOrder.UID, string.Empty, string.Empty);
                                 }
                                 //Đơn ký gửi
                                 else
@@ -488,7 +508,7 @@ namespace NhapHangV2.Service.Services
                                         unitOfWork.Repository<TransportationOrder>().Update(transportationOrder);
                                     transportationOrderList.Add(transportationOrder);
 
-                                    await sendNotificationService.SendNotification(notificationSettingTQ, notiTemplateUserTQ, transportationOrder.Id.ToString(), $"/deposit/deposit-list/{transportationOrder.Id}", "/user/deposit-list", transportationOrder.UID, string.Empty, string.Empty);
+                                    await sendNotificationService.SendNotification(notificationSettingTQ, notiTemplateUserTQ, transportationOrder.Id.ToString(), $"/manager/deposit/deposit-list/{transportationOrder.Id}", "/user/deposit-list", transportationOrder.UID, string.Empty, string.Empty);
                                 }
 
                                 break;
@@ -587,7 +607,7 @@ namespace NhapHangV2.Service.Services
                                     mainOrderUpdated = mainOrderList.LastOrDefault();
                                     if (historyOrderChanges.Any())
                                         await unitOfWork.Repository<HistoryOrderChange>().CreateAsync(historyOrderChanges);
-                                    await sendNotificationService.SendNotification(notificationSettingVN, notiTemplateUserVN, mainOrder.Id.ToString(), $"order/order-list/{mainOrder.Id}", $"/user/order-list/{mainOrder.Id}", mainOrder.UID, string.Empty, string.Empty);
+                                    await sendNotificationService.SendNotification(notificationSettingVN, notiTemplateUserVN, mainOrder.Id.ToString(), $"/manager/order/order-list/{mainOrder.Id}", $"/user/order-list/{mainOrder.Id}", mainOrder.UID, string.Empty, string.Empty);
                                 }
                                 else
                                 {
@@ -622,7 +642,17 @@ namespace NhapHangV2.Service.Services
                                     if (!transportationOrderList.Select(e => e.Id).Contains(transportationOrder.Id))
                                         unitOfWork.Repository<TransportationOrder>().Update(transportationOrder);
                                     transportationOrderList.Add(transportationOrder);
-                                    await sendNotificationService.SendNotification(notificationSettingVN, notiTemplateUserVN, transportationOrder.Id.ToString(), $"/deposit/deposit-list/{transportationOrder.Id}", $"/user/deposit-list", transportationOrder.UID, string.Empty, string.Empty);
+                                    await sendNotificationService.SendNotification(notificationSettingVN, notiTemplateUserVN, transportationOrder.Id.ToString(), $"/manager/deposit/deposit-list/{transportationOrder.Id}", $"/user/deposit-list", transportationOrder.UID, string.Empty, string.Empty);
+                                }
+
+                                //Kiêm tra nếu 1 mã vận đơn trong bao lớn đã về VN thì đổi trạng thái đã về VN
+                                if (item.BigPackageId != null && item.BigPackageId > 0)
+                                {
+                                    var bigPackage = await unitOfWork.CatalogueRepository<BigPackage>().GetQueryable().FirstOrDefaultAsync(x => x.Id == item.BigPackageId);
+                                    bigPackage.Status = (int)StatusBigPackage.DaNhanHang;
+                                    unitOfWork.Repository<BigPackage>().Update(bigPackage);
+                                    await unitOfWork.SaveAsync();
+                                    unitOfWork.Repository<BigPackage>().Detach(bigPackage);
                                 }
                                 break;
                             default:
@@ -698,26 +728,51 @@ namespace NhapHangV2.Service.Services
                 List<string> failedResult = new List<string>();
 
                 var ws = package.Workbook.Worksheets.FirstOrDefault();
+
+                if (ws.Columns.Range.Columns != 2 || !((string)(ws.Cells[1, 1]).Value).Equals("MÃ VẬN ĐƠN") || !((string)(ws.Cells[1, 2]).Value).Equals("CÂN NẶNG"))
+                    throw new AppException("Tập tin không đúng định dạng");
+
                 if (ws == null) throw new Exception("Sheet name không tồn tại");
                 var catalogueMappers = new ExcelMapper(stream) { HeaderRow = false, MinRowNumber = 1 }.Fetch<SmallPackageMapper>().ToList();
                 if (catalogueMappers == null || !catalogueMappers.Any()) throw new Exception("Sheet không có dữ liệu");
 
+                int duplicateCount = 0;
+                HashSet<string> checkSet = new HashSet<string>();
+                int updateCount = 0;
                 foreach (var catalogueMapper in catalogueMappers)
                 {
                     string orderTransactionCode = catalogueMapper.OrderTransactionCode;
 
                     var smallPackage = await Queryable.Where(e => !e.Deleted && e.OrderTransactionCode.Equals(orderTransactionCode)).FirstOrDefaultAsync();
-                    smallPackage.Weight = catalogueMapper.Weight;
-                    smallPackage.BigPackageId = bigPackageId;
-                    smallPackage.Status = (int)StatusSmallPackage.DaVeKhoTQ;
-                    smallPackage.DateInTQWarehouse = currentDate;
-
+                    if (smallPackage != null)
+                    {
+                        smallPackage.Weight = catalogueMapper.Weight;
+                        smallPackage.BigPackageId = bigPackageId;
+                        smallPackage.Status = (int)StatusSmallPackage.DaVeKhoTQ;
+                        smallPackage.DateInTQWarehouse = currentDate;
+                        if (!checkSet.Add(catalogueMapper.OrderTransactionCode))
+                        {
+                            duplicateCount++;
+                        }
+                        else
+                        {
+                            updateCount++;
+                        }
+                    }
                     //Tạo mã vận đơn mới
                     if (smallPackage == null)
                     {
+                        if (!checkSet.Add(catalogueMapper.OrderTransactionCode))
+                        {
+                            duplicateCount++;
+                        }
                         smallPackage = new SmallPackage();
                         smallPackage.OrderTransactionCode = orderTransactionCode;
                         smallPackage.IsTemp = true;
+                        smallPackage.Weight = catalogueMapper.Weight;
+                        smallPackage.BigPackageId = bigPackageId;
+                        smallPackage.Status = (int)StatusSmallPackage.DaVeKhoTQ;
+                        smallPackage.DateInTQWarehouse = currentDate;
 
                         await unitOfWork.Repository<SmallPackage>().CreateAsync(smallPackage);
                         await unitOfWork.SaveAsync();
@@ -767,7 +822,9 @@ namespace NhapHangV2.Service.Services
                 {
                     TotalSuccess = totalSuccess,
                     TotalFailed = failedResult.Count,
-                    FailedResult = failedResult
+                    FailedResult = failedResult,
+                    TotalUpdate = updateCount,
+                    TotalDuplicate = duplicateCount
                 };
                 appDomainImportResult.Success = true;
                 return appDomainImportResult;
@@ -1007,7 +1064,7 @@ namespace NhapHangV2.Service.Services
                     {
                         if (OrderID > 0)
                             smallPackages = await this.GetAsync(x => !x.Deleted && x.Active
-                                && (x.MainOrderId == mainOrder.Id)
+                                && (x.MainOrderId == mainOrder.Id )
                             );
                         else
                             smallPackages = await this.GetAsync(x => !x.Deleted && x.Active
@@ -1111,7 +1168,7 @@ namespace NhapHangV2.Service.Services
                     else
                     {
                         smallPackages = await this.GetAsync(x => !x.Deleted && x.Active
-                            && (x.UID == user.Id && (x.Status == 3 || x.Status == 4))
+                            && (x.UID == user.Id && x.Status == 3 )
                         );
 
                         foreach (var smallPackage in smallPackages)

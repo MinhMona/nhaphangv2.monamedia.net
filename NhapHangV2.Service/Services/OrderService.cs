@@ -110,25 +110,25 @@ namespace NhapHangV2.Service.Services
                     //Tính lại phí mua hàng
                     var userLevel = await unitOfWork.Repository<UserLevel>().GetQueryable().Where(x => x.Id == user.LevelId).FirstOrDefaultAsync();
 
-                    decimal lessDeposit = userLevel == null ? 0 : userLevel.LessDeposit ?? 0;
-                    if (user.Deposit >= 0)
+                    decimal lessDeposit = userLevel == null ? 0 : (userLevel.LessDeposit ?? 0);
+                    if (user.Deposit > 0)
                         lessDeposit = user.Deposit ?? 0;
 
-                    var cKFeeBuyPro = userLevel == null ? 0 : userLevel.FeeBuyPro ?? 0;
+                    var cKFeeBuyPro = userLevel == null ? 0 : (userLevel.FeeBuyPro ?? 0);
 
                     decimal serviceFee = 0;
                     decimal feebpnotdc = 0;
                     var feeBuyPro = await unitOfWork.Repository<FeeBuyPro>().GetQueryable().Where(x => mainOrder.PriceVND >= x.PriceFrom && mainOrder.PriceVND <= x.PriceTo).FirstOrDefaultAsync();
                     if (feeBuyPro != null)
                     {
-                        decimal feePercent = feeBuyPro.FeePercent > 0 ? feeBuyPro.FeePercent ?? 0 : 0;
+                        decimal feePercent = feeBuyPro.FeePercent > 0 ? (feeBuyPro.FeePercent ?? 0) : 0;
                         serviceFee = feePercent / 100;
                     }
 
                     if (user.FeeBuyPro > 0)
-                        feebpnotdc = mainOrder.PriceVND * Convert.ToDecimal(user.FeeBuyPro) / 100 ?? 0;
+                        feebpnotdc = (mainOrder.PriceVND ?? 0) * (user.FeeBuyPro ?? 0) / 100;
                     else
-                        feebpnotdc = mainOrder.PriceVND * serviceFee ?? 0;
+                        feebpnotdc = (mainOrder.PriceVND ?? 0) * serviceFee;
 
                     decimal subfeebp = feebpnotdc * (cKFeeBuyPro / 100);
                     decimal feebp = feebpnotdc - subfeebp;
@@ -231,7 +231,7 @@ namespace NhapHangV2.Service.Services
                             var emailTemplate = await sMSEmailTemplateService.GetByCodeAsync("UCNMDH");
                             string subject = emailTemplate.Subject;
                             string emailContent = string.Format(emailTemplate.Body);
-                            await sendNotificationService.SendNotification(notificationSetting, notiTemplate, item.Id.ToString(),"", $"/user/order-list/{item.Id}", item.UID, subject, emailContent);
+                            await sendNotificationService.SendNotification(notificationSetting, notiTemplate, item.Id.ToString(), "", $"/user/order-list/{item.Id}", item.UID, subject, emailContent);
 
                             mainOrder.Deposit = mainOrder.AmountDeposit;
                         }

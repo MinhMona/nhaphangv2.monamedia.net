@@ -124,6 +124,11 @@ namespace NhapHangV2.Request
         #region Cấu hình tài khoản MXH
 
         /// <summary>
+        /// Link facebook Fanpage
+        /// </summary>
+        public string? FacebookFanpage { get; set; } 
+
+        /// <summary>
         /// Link facebook
         /// </summary>
         public string? Facebook { get; set; }

@@ -101,7 +101,6 @@ namespace NhapHangV2.API.Controllers
             && !e.IsRead
             && e.ToUserId == LoginContext.Instance.CurrentUser.UserId
             && e.OfEmployee.Equals(ofEmployee)
-            //&& (!LoginContext.Instance.CurrentUser.HospitalId.HasValue || e.HospitalId == LoginContext.Instance.CurrentUser.HospitalId)
             );
             if (userNotifications != null && userNotifications.Any())
                 totalNotifications = userNotifications.Count();

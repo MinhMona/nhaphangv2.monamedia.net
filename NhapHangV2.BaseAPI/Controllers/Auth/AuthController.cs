@@ -421,7 +421,7 @@ namespace NhapHangV2.BaseAPI.Controllers.Auth
 
                     if (notiTemplate != null && notificationSetting.Active)
                     {
-                        await sendNotificationService.SendNotification(notificationSetting, notiTemplate, user.UserName, string.Empty, "", null, subject, emailContent);
+                        await sendNotificationService.SendNotification(notificationSetting, notiTemplate, user.UserName, $"/manager/client/client-list/{userModel.Id}", "", null, subject, emailContent);
                     }
 
                     appDomainResult = new AppDomainResult()
@@ -672,7 +672,8 @@ namespace NhapHangV2.BaseAPI.Controllers.Auth
                             {
                                 new Claim(ClaimTypes.UserData, JsonConvert.SerializeObject(userLoginModel))
                             }),
-                Expires = DateTime.UtcNow.AddDays(1),
+                //Expires = DateTime.Now.AddMinutes(10),
+                Expires = DateTime.UtcNow.AddHours(7).AddMinutes(3),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -758,7 +759,8 @@ namespace NhapHangV2.BaseAPI.Controllers.Auth
                             {
                                 new Claim(ClaimTypes.UserData, JsonConvert.SerializeObject(userLoginModel))
                             }),
-                Expires = DateTime.UtcNow.AddDays(1),
+                Expires = DateTime.UtcNow.AddHours(7).AddMinutes(3),
+                //Expires = DateTime.Now.AddMinutes(10),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -827,7 +829,7 @@ namespace NhapHangV2.BaseAPI.Controllers.Auth
             foreach (var userInGroup in userInGroups)
             {
                 var user = await userService.GetUserByIdAndGroupId(userInGroup.UserId, userInGroup.UserGroupId);
-                if(user != null)
+                if (user != null)
                     users.Add(user);
             }
             var resp = users.Select(x => new { x.Id, x.UserName, x.UserGroupName }).OrderBy(x => x.UserGroupName).ToList();

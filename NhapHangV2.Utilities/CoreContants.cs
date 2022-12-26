@@ -21,6 +21,7 @@ namespace NhapHangV2.Utilities
         //public const string DeleteFile = "DeleteFile";
 
         public const string UPLOAD_FOLDER_NAME = "Upload";
+        public const string EXCEL_FOLDER_NAME = "Excels";
         public const string TEMP_FOLDER_NAME = "Temp";
         public const string TEMPLATE_FOLDER_NAME = "Template";
         public const string CATALOGUE_TEMPLATE_NAME = "CatalogueTemplate.xlsx";
@@ -201,6 +202,7 @@ namespace NhapHangV2.Utilities
         {
             DatCoc2 = 2,
             DatCoc3 = 3,
+            HuyHoanTien = 4,
             ThanhToan = 9,
             SanPhamHetHang = 12
         }

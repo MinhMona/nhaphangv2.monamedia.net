@@ -139,6 +139,11 @@ namespace NhapHangV2.Models
         public string StepPrice { get; set; }
 
         /// <summary>
+        /// Số lượng sản phẩm tối thiểu
+        /// </summary>
+        public int MinimumQuantity { get; set; }
+
+        /// <summary>
         /// Có xài mà không biết là gì
         /// </summary>
         public string Comment { get; set; }

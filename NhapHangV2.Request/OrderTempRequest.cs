@@ -63,6 +63,11 @@ namespace NhapHangV2.Request
 
         public string? error { get; set; }
 
+        /// <summary>
+        /// Số lượng sản phẩm tối thiểu
+        /// </summary>
+        public int? MinimumQuantity { get; set; }
+
         ////public int? OrderShopTempId { get; set; }
 
         ///// <summary>

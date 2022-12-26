@@ -66,6 +66,8 @@ namespace NhapHangV2.Request
 
         public string? image_origin { get; set; }
 
+        public int? MinimumQuantity { get; set; }
+
 
 
         //public string? location_sale { get; set; }

@@ -1,29 +1,25 @@
-﻿using NhapHangV2.Interface.Repository;
-using NhapHangV2.Interface.Services.Auth;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using NhapHangV2.Service.Repository;
+using NhapHangV2.Interface.DbContext;
+using NhapHangV2.Interface.Repository;
+using NhapHangV2.Interface.Services;
+using NhapHangV2.Interface.Services.Auth;
+using NhapHangV2.Interface.Services.Catalogue;
+using NhapHangV2.Interface.Services.Configuration;
+using NhapHangV2.Interface.Services.Report;
 using NhapHangV2.Interface.UnitOfWork;
 using NhapHangV2.Service;
-using NhapHangV2.Service.Services.Auth;
-using NhapHangV2.Interface.Services;
+using NhapHangV2.Service.Repository;
 using NhapHangV2.Service.Services;
-using NhapHangV2.Interface.Services.Catalogue;
+using NhapHangV2.Service.Services.Auth;
 using NhapHangV2.Service.Services.Catalogue;
-using NhapHangV2.Interface.Services.Configuration;
 using NhapHangV2.Service.Services.Configurations;
-using NhapHangV2.Interface.DbContext;
-using NhapHangV2.Interface.Services.Report;
 using NhapHangV2.Service.Services.Report;
-using NhapHangV2.Utilities;
+using System;
+using System.Globalization;
+using System.IO;
 
 namespace NhapHangV2.BaseAPI
 {
@@ -82,6 +78,7 @@ namespace NhapHangV2.BaseAPI
             services.AddScoped<IStepService, StepService>();
             services.AddScoped<IWarehouseFromService, WarehouseFromService>();
             services.AddScoped<IWarehouseService, WarehouseService>();
+            services.AddScoped<ICustomerTalkService, CustomerTalkService>();
 
             #endregion
 
@@ -154,9 +151,12 @@ namespace NhapHangV2.BaseAPI
             services.AddScoped<IWarehouseFeeService, WarehouseFeeService>();
             services.AddScoped<IWithdrawService, WithdrawService>();
 
-            #region
+            #region ToolConfig
             services.AddScoped<IToolConfigService, ToolConfigService>();
             #endregion
+            services.AddScoped(typeof(IStoreSqlService<>), typeof(StoreSqlService<>));
+            services.AddScoped<ISearchService, SearchService>();
+
         }
 
         public static void ConfigureSwagger(this IServiceCollection services)

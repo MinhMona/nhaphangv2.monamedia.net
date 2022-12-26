@@ -27,6 +27,8 @@ namespace NhapHangV2.Models
                         return "Đặt cọc";
                     case (int)StatusPayOrderHistoryContants.ThanhToan:
                         return "Thanh toán";
+                    case (int)StatusPayOrderHistoryContants.HuyHoanTien:
+                        return "Hoàn trả đơn hàng hủy";
                     case (int)StatusPayOrderHistoryContants.SanPhamHetHang:
                         return "Sản phẩm hết hàng";
                     default:

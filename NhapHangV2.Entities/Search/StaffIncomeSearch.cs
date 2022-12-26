@@ -10,6 +10,14 @@ namespace NhapHangV2.Entities.Search
     public class StaffIncomeSearch : BaseSearch
     {
         /// <summary>
+        /// Mã nhân viên
+        /// </summary>
+        public int? UID { get; set; }
+        /// <summary>
+        /// Role nhân viên
+        /// </summary>
+        public int? RoleID { get; set; }
+        /// <summary>
         /// Trạng thái
         /// </summary>
         public int? Status { get; set; }
@@ -24,9 +32,6 @@ namespace NhapHangV2.Entities.Search
         /// </summary>
         public DateTime? ToDate { get; set; }
 
-        /// <summary>
-        /// Mã nhân viên
-        /// </summary>
-        public int? EmployeeID { get; set; }
+
     }
 }

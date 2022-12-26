@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using System.Diagnostics;
 
 namespace NhapHangV2.Extensions
 {
@@ -35,7 +37,17 @@ namespace NhapHangV2.Extensions
             {
                 controllerName = descriptor.ControllerName;
             }
-
+            var expirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(context.HttpContext.User.Claims.ElementAt(2).Value)).DateTime;
+            
+            if (DateTime.UtcNow.AddHours(7) > expirationTime)
+            {
+                context.Result = new JsonResult(new AppDomainResult()
+                {
+                    ResultCode = (int)HttpStatusCode.Unauthorized,
+                    ResultMessage = "Outdated, please login again"
+                });
+                return;
+            }
             if (user == null)
             {
                 context.Result = new JsonResult(new AppDomainResult()
@@ -66,7 +78,7 @@ namespace NhapHangV2.Extensions
                 context.Result = new JsonResult(new AppDomainResult()
                 {
                     ResultCode = (int)HttpStatusCode.Unauthorized,
-                    ResultMessage = "Unauthorized"
+                    ResultMessage = "Bạn không có quyền thực hiện thao tác này"
                 });
                 throw new UnauthorizedAccessException();
             }

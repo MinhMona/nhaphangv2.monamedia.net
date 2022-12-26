@@ -1,6 +1,7 @@
 ﻿using NhapHangV2.Models.DomainModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,6 +56,40 @@ namespace NhapHangV2.Models
                 }
             }
         }
+
+        /// <summary>
+        /// Số đơn 
+        /// </summary>
+        public int? TotalStatus { get; set; }
+        /// <summary>
+        /// Số đơn chờ duyệt
+        /// </summary>
+        public int? TotalStatus1 { get; set; }
+
+        /// <summary>
+        /// Số đơn đã duyệt
+        /// </summary>
+        public int? TotalStatus2 { get; set; }
+
+        /// <summary>
+        /// Số đơn đã hủy
+        /// </summary>
+        public int? TotalStatus3 { get; set; }
+
+        /// <summary>
+        /// Tổng số tiền
+        /// </summary>
+        public decimal? TotalAmount { get; set; }
+
+        /// <summary>
+        /// Tổng số tiền đã duyệt
+        /// </summary>
+        public decimal? TotalAmount2 { get; set; }
+
+        /// <summary>
+        /// Tổng số tiền chờ duyệt
+        /// </summary>
+        public decimal? TotalAmount1 { get; set; }
 
         /// <summary>
         /// Nội dung

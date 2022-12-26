@@ -76,7 +76,7 @@ namespace NhapHangV2.Models
                     case (int)StatusPayHelp.DaHoanThanh:
                         return "Đã hoàn thành";
                     case (int)StatusPayHelp.DaXacNhan:
-                        return "Đã xác nhận";
+                        return "Xác nhận";
                     default:
                         return string.Empty;
                 }

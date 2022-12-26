@@ -12,6 +12,7 @@ using NhapHangV2.Extensions;
 using NhapHangV2.Interface.Services;
 using NhapHangV2.Interface.Services.Catalogue;
 using NhapHangV2.Models;
+using NhapHangV2.Models.ExcelModels;
 using NhapHangV2.Request;
 using NhapHangV2.Service.Services;
 using NhapHangV2.Utilities;
@@ -79,7 +80,7 @@ namespace NhapHangV2.API.Controllers
             var users = await userService.GetSingleAsync(x => x.Id == UID);
             if (users == null)
                 throw new AppException("Người dùng không tồn tại");
-            var mainOrdersInfor = await mainOrderService.GetMainOrdersInforAsync(UID, orderType);
+            var mainOrdersInfor = mainOrderService.GetMainOrdersInfor(UID, orderType);
             return new AppDomainResult
             {
                 Data = mainOrdersInfor,
@@ -99,7 +100,7 @@ namespace NhapHangV2.API.Controllers
             var users = await userService.GetSingleAsync(x => x.Id == UID);
             if (users == null)
                 throw new AppException("Người dùng không tồn tại");
-            var mainOrderAmount = await mainOrderService.GetMainOrdersAmountAsync(UID, orderType);
+            var mainOrderAmount = mainOrderService.GetMainOrdersAmount(UID, orderType);
             return new AppDomainResult
             {
                 ResultCode = (int)HttpStatusCode.OK,
@@ -405,7 +406,7 @@ namespace NhapHangV2.API.Controllers
                 decimal feebuypropt = 0;
                 if (users.FeeBuyPro > 0)
                 {
-                    feebpnotdc = priceVND * users.FeeBuyPro ?? 0 / 100;
+                    feebpnotdc = priceVND * (users.FeeBuyPro ?? 0) / 100;
                     feebuypropt = users.FeeBuyPro ?? 0;
                 }
                 else
@@ -493,34 +494,7 @@ namespace NhapHangV2.API.Controllers
                     order.Created = DateTime.Now;
                     order.CreatedBy = users.UserName;
                     order.ImageOrigin = item.ImageProduct;
-                    #region Old Iamge
-                    //    //Chuyển hình ảnh từ folder Temp --> folder Chính
-                    //    filePaths = new List<string>();
-                    //    folderUploadPaths = new List<string>();
 
-                    //    if (!string.IsNullOrEmpty(item.ImageProduct))
-                    //    {
-                    //        string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, item.ImageProduct);
-                    //        // ------- START GET URL FOR FILE
-                    //        string folderUploadPath = string.Empty;
-                    //        var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //        folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //        string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //        // Kiểm tra có tồn tại file trong temp chưa?
-                    //        if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //        {
-                    //            FileUtilities.CreateDirectory(folderUploadPath);
-                    //            FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //            folderUploadPaths.Add(fileUploadPath);
-                    //            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //            string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                        // ------- END GET URL FOR FILE
-                    //            filePaths.Add(filePath);
-
-                    //            order.ImageOrigin = fileUrl;
-                    //        }
-                    //    }
-                    #endregion
                     listOrder.Add(order);
                 }
 
@@ -644,28 +618,7 @@ namespace NhapHangV2.API.Controllers
                 {
                     appDomainResult.ResultCode = (int)HttpStatusCode.OK;
                 }
-                #region old image
-                //    //// Remove file trong thư mục temp
-                //    if (filePaths.Any())
-                //    {
-                //        foreach (var filePath in filePaths)
-                //        {
-                //            System.IO.File.Delete(filePath);
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    if (folderUploadPaths.Any())
-                //    {
-                //        foreach (var folderUploadPath in folderUploadPaths)
-                //        {
-                //            System.IO.File.Delete(folderUploadPath);
-                //        }
-                //    }
-                //    throw new Exception("Lỗi trong quá trình xử lý");
-                //}
-                #endregion
+                
                 appDomainResult.Success = success;
             }
             else
@@ -954,9 +907,6 @@ namespace NhapHangV2.API.Controllers
                     //Tổng số tiền mua thật
                     if (itemModel.TotalPriceRealCNY != item.TotalPriceRealCNY)
                     {
-                        if (itemModel.TotalPriceRealCNY > itemModel.PriceCNY)
-                            throw new AppException("Số tiền mua thật lớn hơn số tiền trên web");
-
                         itemModel.TotalPriceReal = itemModel.TotalPriceRealCNY * itemModel.CurrentCNYVN;
                         if (itemModel.TotalPriceReal != item.TotalPriceReal)
                         {
@@ -980,10 +930,6 @@ namespace NhapHangV2.API.Controllers
                     }
 
                     //Phí ship TQ thật
-                    if (itemModel.FeeShipCNRealCNY != item.FeeShipCNRealCNY && itemModel.FeeShipCNRealCNY > itemModel.FeeShipCNCNY)
-                    {
-                        throw new AppException("Phí ship Trung Quốc thật lớn hơn phí ship Trung Quốc");
-                    }
                     itemModel.FeeShipCNReal = itemModel.FeeShipCNRealCNY * itemModel.CurrentCNYVN;
                     if (itemModel.FeeShipCNReal != item.FeeShipCNReal)
                     {
@@ -1140,9 +1086,12 @@ namespace NhapHangV2.API.Controllers
 
             if (staffIncomeOrderer != null)
             {
-                //Tính
+                //Tính hoa hồng
                 staffIncomeOrderer.PercentReceive = datHangPercent;
-                decimal? totalPriceLoi = (item.PriceVND + item.FeeShipCN) - item.TotalPriceReal;
+                //decimal? totalPriceLoi = (item.PriceVND + item.FeeShipCN) - item.TotalPriceReal;
+                //decimal? totalPriceLoi = (item.PriceVND + item.FeeShipCN) - item.TotalPriceReal - item.FeeShipCNReal;
+                decimal? totalPriceLoi = (itemModel.PriceVND + itemModel.FeeShipCN) - itemModel.TotalPriceReal - itemModel.FeeShipCNReal;
+
                 staffIncomeOrderer.OrderTotalPrice = item.TotalPriceReal;
                 staffIncomeOrderer.Status = (int?)StatusStaffIncome.Unpaid;
                 staffIncomeOrderer.TotalPriceReceive = (totalPriceLoi * staffIncomeOrderer.PercentReceive / 100);
@@ -1193,14 +1142,13 @@ namespace NhapHangV2.API.Controllers
         /// <summary>
         /// Tính số lượng đơn theo trạng thái
         /// </summary>
-        /// <param name="orderType"> 1:Đơn mua hộ, 3: Đơn mua hộ khác</param>
-        /// <param name="UID"></param>
+        /// <param name="mainOrderSearch"> 1:Đơn mua hộ, 3: Đơn mua hộ khác</param>
         /// <returns></returns>
         [HttpGet("number-of-orders")]
         [AppAuthorize(new int[] { CoreContants.View })]
-        public async Task<AppDomainResult> NumberOfOrder(int orderType, int? UID)
+        public AppDomainResult NumberOfOrder([FromQuery] MainOrderSearch mainOrderSearch)
         {
-            var numberOfOrders = await mainOrderService.GetNumberOfOrders(orderType, UID);
+            var numberOfOrders = mainOrderService.GetNumberOfOrders(mainOrderSearch);
             return new AppDomainResult
             {
                 Data = numberOfOrders,
@@ -1231,8 +1179,7 @@ namespace NhapHangV2.API.Controllers
 
             // 2. LẤY THÔNG TIN FILE TEMPLATE ĐỂ EXPORT
             string getTemplateFilePath = GetTemplateFilePath("MainOrderTemplate.xlsx"); //Danh sách đơn hàng mua hộ
-            if (baseSearch.UID > 0) //Danh sách đơn hàng mua hộ của khách hàng
-                getTemplateFilePath = GetTemplateFilePath("MainOrderForCusTemplate.xlsx");
+
             excelUtility.TemplateFileData = System.IO.File.ReadAllBytes(getTemplateFilePath);
 
             // 3. LẤY THÔNG TIN THAM SỐ TRUYỀN VÀO
@@ -1240,22 +1187,21 @@ namespace NhapHangV2.API.Controllers
             if (pagedListModel.Items == null || !pagedListModel.Items.Any())
                 pagedListModel.Items.Add(new MainOrderModel());
             byte[] fileByteReport = excelUtility.Export(pagedListModel.Items);
-            // Xuất biểu đồ nếu có
-            fileByteReport = await this.ExportChart(fileByteReport, pagedListModel.Items);
 
+            //byte[] fileByteReport = mainOrderService.GetMainOrdersExcel(baseSearch);
             // 4. LƯU THÔNG TIN FILE BÁO CÁO XUỐNG FOLDER BÁO CÁO
             string fileName = string.Format("{0}-{1}.xlsx", Guid.NewGuid().ToString(), "MainOrder");
-            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, fileName);
+            string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME, fileName);
 
             string folderUploadPath = string.Empty;
             var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME);
+            folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.EXCEL_FOLDER_NAME);
             string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
 
             FileUtilities.CreateDirectory(folderUploadPath);
             FileUtilities.SaveToPath(fileUploadPath, fileByteReport);
 
-            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
+            var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.EXCEL_FOLDER_NAME}/";
             fileResultPath = Path.Combine(currentLinkSite, Path.GetFileName(filePath));
 
             // 5. TRẢ ĐƯỜNG DẪN FILE CHO CLIENT DOWN VỀ

@@ -1,6 +1,8 @@
 ﻿using NhapHangV2.Entities;
 using NhapHangV2.Entities.Search;
 using NhapHangV2.Interface.Services.DomainServices;
+using NhapHangV2.Models;
+using NhapHangV2.Models.ExcelModels;
 using NhapHangV2.Utilities;
 using System;
 using System.Collections.Generic;
@@ -22,11 +24,12 @@ namespace NhapHangV2.Interface.Services
 
         Task<MainOrder> PriceAdjustment(MainOrder item);
         Task<AmountStatistic> GetTotalOrderPriceByUID(int UID);
-        Task<MainOrdersInfor> GetMainOrdersInforAsync(int UID, int orderType);
-        Task<MainOrdersAmount> GetMainOrdersAmountAsync(int UID, int orderType);
+        MainOrdersInfor GetMainOrdersInfor(int UID, int orderType);
+        MainOrdersAmount GetMainOrdersAmount(int UID, int orderType);
         Task<bool> UpdateStatus(int ID, int status);
         Task<bool> UpdateIsCheckNotiPrice(MainOrder mainOrder);
         void UpdateMainOrderFromSql(string commandText);
-        Task<NumberOfOrders> GetNumberOfOrders(int orderType, int? UID);
+        NumberOfOrders GetNumberOfOrders(MainOrderSearch mainOrderSearch);
+        byte[] GetMainOrdersExcel(MainOrderSearch mainOrderSearch);
     }
 }

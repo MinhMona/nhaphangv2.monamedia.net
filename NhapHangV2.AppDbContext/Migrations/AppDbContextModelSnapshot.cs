@@ -503,6 +503,54 @@ namespace NhapHangV2.AppDbContext.Migrations
                     b.ToTable("CustomerBenefits");
                 });
 
+            modelBuilder.Entity("NhapHangV2.Entities.Catalogue.CustomerTalk", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("IMG")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CustomerTalk");
+                });
+
             modelBuilder.Entity("NhapHangV2.Entities.Catalogue.Menu", b =>
                 {
                     b.Property<int>("Id")
@@ -1514,6 +1562,9 @@ namespace NhapHangV2.AppDbContext.Migrations
                     b.Property<string>("Facebook")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FacebookFanpage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FooterLeft")
                         .HasColumnType("nvarchar(max)");
 
@@ -2279,10 +2330,13 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("AmountDeposit")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("CKFeeBuyPro")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CancelDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("CompleteDate")
                         .HasColumnType("datetime2");
@@ -2295,7 +2349,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal?>("CurrentCNYVN")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("DatHangId")
                         .HasColumnType("int");
@@ -2317,7 +2371,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<decimal?>("Deposit")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("DepositDate")
                         .HasColumnType("datetime2");
@@ -2326,46 +2380,49 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("FeeBuyPro")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("FeeBuyProCK")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeBuyProPT")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeBuyProUser")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeInWareHouse")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeShipCN")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeShipCNCNY")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeShipCNReal")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeShipCNRealCNY")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeShipCNToVN")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeWeight")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("FeeWeightCK")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("FromPlace")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("InsuranceMoney")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("InsurancePercent")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool?>("IsCheckNotiPrice")
                         .HasColumnType("bit");
@@ -2374,7 +2431,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("IsCheckProductPrice")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("IsCheckProductPriceCNY")
                         .HasColumnType("decimal(18,2)");
@@ -2389,7 +2446,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("IsFastDeliveryPrice")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool?>("IsInsurance")
                         .HasColumnType("bit");
@@ -2398,7 +2455,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("IsPackedPrice")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("IsPackedPriceCNY")
                         .HasColumnType("decimal(18,2)");
@@ -2407,7 +2464,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("LessDeposit")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
@@ -2426,7 +2483,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("PriceVND")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("ReceivePlace")
                         .HasColumnType("int");
@@ -2465,19 +2522,19 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Surcharge")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("TQVNWeight")
                         .HasColumnType("decimal(18,1)");
 
                     b.Property<decimal?>("TotalPriceReal")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("TotalPriceRealCNY")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("TotalPriceVND")
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("UID")
                         .HasColumnType("int");
@@ -2994,6 +3051,9 @@ namespace NhapHangV2.AppDbContext.Migrations
 
                     b.Property<string>("LocationSale")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MinimumQuantity")
+                        .HasColumnType("int");
 
                     b.Property<int?>("OrderShopTempId")
                         .HasColumnType("int");
@@ -3920,6 +3980,9 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<decimal?>("FeeWeightCK")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal?>("FeeWeightPerKg")
                         .HasColumnType("decimal(18,1)");
 
@@ -3944,6 +4007,12 @@ namespace NhapHangV2.AppDbContext.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("OrderTransactionCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SalerID")
+                        .HasColumnType("int");
 
                     b.Property<int?>("ShippingTypeId")
                         .HasColumnType("int");

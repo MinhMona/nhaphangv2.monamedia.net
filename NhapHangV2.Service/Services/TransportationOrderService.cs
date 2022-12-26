@@ -42,10 +42,12 @@ namespace NhapHangV2.Service.Services
         private readonly ISendNotificationService sendNotificationService;
         protected readonly IUserInGroupService userInGroupService;
         private readonly ISMSEmailTemplateService sMSEmailTemplateService;
+        private readonly IServiceProvider serviceProvider;
 
         public TransportationOrderService(IServiceProvider serviceProvider, IAppUnitOfWork unitOfWork, IMapper mapper, IAppDbContext Context) : base(unitOfWork, mapper)
         {
             this.Context = Context;
+            this.serviceProvider = serviceProvider;
             userService = serviceProvider.GetRequiredService<IUserService>();
             configurationsService = serviceProvider.GetRequiredService<IConfigurationsService>();
             warehouseFeeService = serviceProvider.GetRequiredService<IWarehouseFeeService>();
@@ -119,15 +121,74 @@ namespace NhapHangV2.Service.Services
 
         public override async Task<bool> UpdateAsync(TransportationOrder item)
         {
-            unitOfWork.Repository<TransportationOrder>().Update(item);
-            foreach (var smallPackage in item.SmallPackages)
+            if (item.Status == (int)StatusGeneralTransportationOrder.DaDuyet)
             {
-                smallPackage.DonGia = item.FeeWeightPerKg;
-                smallPackage.OrderTransactionCode = smallPackage.OrderTransactionCode.Replace(" ", "");
-                unitOfWork.Repository<SmallPackage>().Update(smallPackage);
+                using (var dbContextTransaction = Context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var smallPackage = unitOfWork.Repository<SmallPackage>().GetQueryable().Where(x => x.OrderTransactionCode.Equals(item.OrderTransactionCode)).FirstOrDefault();
+                        if (smallPackage == null)
+                        {
+                            smallPackage = new SmallPackage();
+                            smallPackage.UID = item.UID;
+                            smallPackage.TransportationOrderId = item.Id;
+                            smallPackage.OrderTransactionCode = item.OrderTransactionCode;
+                            smallPackage.ProductType = item.Category;
+                            smallPackage.BigPackageId = 0;
+                            smallPackage.FeeShip = smallPackage.Weight = 0;
+                            smallPackage.Status = (int)StatusSmallPackage.MoiDat;
+
+                            smallPackage.Deleted = false;
+                            smallPackage.Active = true;
+                            smallPackage.Created = item.Created;
+                            smallPackage.CreatedBy = item.CreatedBy;
+
+                            smallPackage.IsInsurance = item.IsInsurance;
+                            smallPackage.IsCheckProduct = item.IsCheckProduct;
+                            smallPackage.IsPackged = item.IsPacked;
+                            smallPackage.TotalOrderQuantity = (int)item.Amount;
+                            await unitOfWork.Repository<SmallPackage>().CreateAsync(smallPackage);
+                            await unitOfWork.SaveAsync();
+
+                            item.SmallPackageId = smallPackage.Id;
+
+                            unitOfWork.Repository<TransportationOrder>().Update(item);
+                        }
+                        else
+                        {
+                            if (item.SmallPackages.Count > 0)
+                            {
+                                unitOfWork.Repository<TransportationOrder>().Update(item);
+                            }
+                            else
+                            {
+                                throw new AppException("Mã vận đơn đã tồn tại ở đơn ký gửi khác");
+                            }
+                        }
+                        await unitOfWork.SaveAsync();
+                        await dbContextTransaction.CommitAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        await dbContextTransaction.RollbackAsync();
+                        throw new Exception(ex.Message);
+                    }
+                }
             }
-            await unitOfWork.SaveAsync();
+            else
+            {
+                unitOfWork.Repository<TransportationOrder>().Update(item);
+                foreach (var smallPackage in item.SmallPackages)
+                {
+                    smallPackage.DonGia = item.FeeWeightPerKg;
+                    smallPackage.OrderTransactionCode = smallPackage.OrderTransactionCode.Replace(" ", "");
+                    unitOfWork.Repository<SmallPackage>().Update(smallPackage);
+                }
+                await unitOfWork.SaveAsync();
+            }
             return true;
+
         }
 
         public override async Task<bool> CreateAsync(IList<TransportationOrder> items)
@@ -147,36 +208,36 @@ namespace NhapHangV2.Service.Services
                         var emailTemplate = await sMSEmailTemplateService.GetByCodeAsync("ADHM");
                         string subject = emailTemplate.Subject;
                         string emailContent = string.Format(emailTemplate.Body); //Thông báo Email
-                        await sendNotificationService.SendNotification(notificationSetting, notiTemplate, item.Id.ToString(), $"/deposit/deposit-list/{item.Id}", "", item.Id, subject, emailContent);
+                        await sendNotificationService.SendNotification(notificationSetting, notiTemplate, item.Id.ToString(), $"/manager/deposit/deposit-list/{item.Id}", "", item.Id, subject, emailContent);
 
-                        var smallPackage = unitOfWork.Repository<SmallPackage>().GetQueryable().Where(x => x.TransportationOrderId == item.Id).FirstOrDefault();
-                        if (smallPackage == null)
-                        {
-                            smallPackage = new SmallPackage();
-                            smallPackage.UID = item.UID;
-                            smallPackage.TransportationOrderId = item.Id;
-                            smallPackage.OrderTransactionCode = item.OrderTransactionCode;
-                            smallPackage.ProductType = item.Category;
-                            smallPackage.BigPackageId = 0;
-                            smallPackage.FeeShip = smallPackage.Weight = 0;
-                            smallPackage.Status = (int)StatusGeneralTransportationOrder.ChoDuyet;
+                        //var smallPackage = unitOfWork.Repository<SmallPackage>().GetQueryable().Where(x => x.TransportationOrderId == item.Id).FirstOrDefault();
+                        //if (smallPackage == null)
+                        //{
+                        //    smallPackage = new SmallPackage();
+                        //    smallPackage.UID = item.UID;
+                        //    smallPackage.TransportationOrderId = item.Id;
+                        //    smallPackage.OrderTransactionCode = item.OrderTransactionCode;
+                        //    smallPackage.ProductType = item.Category;
+                        //    smallPackage.BigPackageId = 0;
+                        //    smallPackage.FeeShip = smallPackage.Weight = 0;
+                        //    smallPackage.Status = (int)StatusGeneralTransportationOrder.ChoDuyet;
 
-                            smallPackage.Deleted = false;
-                            smallPackage.Active = true;
-                            smallPackage.Created = item.Created;
-                            smallPackage.CreatedBy = item.CreatedBy;
+                        //    smallPackage.Deleted = false;
+                        //    smallPackage.Active = true;
+                        //    smallPackage.Created = item.Created;
+                        //    smallPackage.CreatedBy = item.CreatedBy;
 
-                            smallPackage.IsInsurance = item.IsInsurance;
-                            smallPackage.IsCheckProduct = item.IsCheckProduct;
-                            smallPackage.IsPackged = item.IsPacked;
-                            smallPackage.TotalOrderQuantity = (int)item.Amount;
-                            await unitOfWork.Repository<SmallPackage>().CreateAsync(smallPackage);
-                            await unitOfWork.SaveAsync();
+                        //    smallPackage.IsInsurance = item.IsInsurance;
+                        //    smallPackage.IsCheckProduct = item.IsCheckProduct;
+                        //    smallPackage.IsPackged = item.IsPacked;
+                        //    smallPackage.TotalOrderQuantity = (int)item.Amount;
+                        //    await unitOfWork.Repository<SmallPackage>().CreateAsync(smallPackage);
+                        //    await unitOfWork.SaveAsync();
 
-                            item.SmallPackageId = smallPackage.Id;
+                        //    item.SmallPackageId = smallPackage.Id;
 
-                            unitOfWork.Repository<TransportationOrder>().Update(item);
-                        }
+                        //    unitOfWork.Repository<TransportationOrder>().Update(item);
+                        //}
                     }
                     await unitOfWork.SaveAsync();
                     await dbContextTransaction.CommitAsync();
@@ -503,7 +564,7 @@ namespace NhapHangV2.Service.Services
             var user = await unitOfWork.Repository<Users>().GetQueryable().Where(e => !e.Deleted && e.Id == item.UID).FirstOrDefaultAsync();
             var userLevel = await unitOfWork.Repository<UserLevel>().GetQueryable().Where(e => !e.Deleted && e.Id == user.LevelId).FirstOrDefaultAsync();
             decimal? ckFeeWeight = userLevel == null ? 1 : userLevel.FeeWeight;
-
+            item.FeeWeightCK = ckFeeWeight;
             decimal? totalWeight = smallPackages.Sum(e => e.PayableWeight);
             var warehouseFee = await unitOfWork.Repository<WarehouseFee>().GetQueryable().Where(e => !e.Deleted
                 && e.WarehouseFromId == item.WareHouseFromId
@@ -524,14 +585,21 @@ namespace NhapHangV2.Service.Services
             decimal? feeWeightDiscount = feeWeight * ckFeeWeight / 100;
             feeWeight -= feeWeightDiscount;
 
-            if (item.DeliveryPrice != feeWeight)
+            if (item.TotalPriceVND == null)
             {
-                item.TotalPriceVND = item.TotalPriceVND - item.DeliveryPrice + feeWeight;
+                item.TotalPriceVND = feeWeight + (item.CODFee ?? 0) + (item.IsCheckProductPrice ?? 0) + (item.IsPackedPrice ?? 0) + (item.InsuranceMoney ?? 0);
+            }
+            else
+            {
+                if (item.DeliveryPrice != feeWeight)
+                {
+                    item.TotalPriceVND = item.TotalPriceVND - item.DeliveryPrice + feeWeight;
+                }
             }
             if (user.Currency != null && user.Currency > 0)
                 item.TotalPriceCNY = item.TotalPriceVND / user.Currency;
             else
-                item.TotalPriceCNY = item.TotalPriceVND / config.Currency;
+                item.TotalPriceCNY = item.TotalPriceVND / config.AgentCurrency;
             item.FeeWeightPerKg = warehouseFeePrice;
             item.DeliveryPrice = feeWeight;
             return item;
@@ -603,7 +671,7 @@ namespace NhapHangV2.Service.Services
                         var emailTemplate = await sMSEmailTemplateService.GetByCodeAsync("ADHDTT");
                         string subject = emailTemplate.Subject;
                         string emailContent = string.Format(emailTemplate.Body); //Thông báo Email
-                        await sendNotificationService.SendNotification(notificationSettingTT, notiTemplate, item.Id.ToString(), $"/deposit/deposit-list/{item.Id}", "", null, subject, emailContent);
+                        await sendNotificationService.SendNotification(notificationSettingTT, notiTemplate, item.Id.ToString(), $"/manager/deposit/deposit-list/{item.Id}", "", null, subject, emailContent);
 
                     }
 
@@ -628,56 +696,26 @@ namespace NhapHangV2.Service.Services
             };
         }
 
-        public async Task<TransportationsInfor> GetTransportationsInforAsync(int? UID)
+        public TransportationsInfor GetTransportationsInfor(TransportationOrderSearch transportationOrderSearch)
         {
-            var transportations = new List<TransportationOrder>();
-            if (UID != null)
-                transportations = await unitOfWork.Repository<TransportationOrder>().GetQueryable().Where(x => x.UID == UID && !x.Deleted).ToListAsync();
-            else
-                transportations = await unitOfWork.Repository<TransportationOrder>().GetQueryable().Where(x => !x.Deleted).ToListAsync();
-
-            int totalOrders = transportations.Count();
-            int totalNews = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.ChoDuyet).ToList().Count;
-            int totalConfimed = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.DaDuyet).ToList().Count;
-            int totalInChina = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.VeKhoTQ).ToList().Count;
-            int totalInVietnam = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.VeKhoVN).ToList().Count;
-            int totalPaid = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.DaThanhToan).ToList().Count;
-            int totalCompleted = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.DaHoanThanh).ToList().Count;
-            int totalCaccled = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.Huy).ToList().Count;
-
-            return new TransportationsInfor
-            {
-                TotalOrders = totalOrders,
-                TotalNewOrders = totalNews,
-                ToTalConfimed = totalConfimed,
-                TotalInChina = totalInChina,
-                TotalInVietnam = totalInVietnam,
-                TotalPaid = totalPaid,
-                TotalCompleted = totalCompleted,
-                TotalCancled = totalCaccled
-            };
+            var storeService = serviceProvider.GetRequiredService<IStoreSqlService<TransportationsInfor>>();
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            sqlParameters.Add(new SqlParameter("@UID", transportationOrderSearch.UID));
+            sqlParameters.Add(new SqlParameter("@RoleID", transportationOrderSearch.RoleID));
+            SqlParameter[] parameters = sqlParameters.ToArray();
+            var data = storeService.GetDataFromStore(parameters, "GetTransportationsInfor");
+            return data.FirstOrDefault();
         }
 
-        public async Task<TransportationsAmount> GetTransportationsAmountAsync(int UID)
+        public TransportationsAmount GetTransportationsAmount(int UID)
         {
-            var transportations = await unitOfWork.Repository<TransportationOrder>().GetQueryable().Where(x => x.UID == UID).ToListAsync();
-            decimal? amountNotDelivery = transportations.Where(x => x.Status > (int)StatusGeneralTransportationOrder.ChoDuyet
-                && x.Status < (int)StatusGeneralTransportationOrder.DaThanhToan)
-                .ToList().Sum(x => x.TotalPriceVND);
-            decimal? amountwattingToChina = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.DaDuyet)
-                .ToList()
-                .Sum(x => x.TotalPriceVND);
-            decimal? amountInChina = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.VeKhoTQ).ToList().Sum(x => x.TotalPriceVND);
-            decimal? amountInVietnam = transportations.Where(x => x.Status == (int)StatusGeneralTransportationOrder.VeKhoVN).ToList().Sum(x => x.TotalPriceVND);
+            var storeService = serviceProvider.GetRequiredService<IStoreSqlService<TransportationsAmount>>();
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            sqlParameters.Add(new SqlParameter("@UID", UID));
+            SqlParameter[] parameters = sqlParameters.ToArray();
+            var data = storeService.GetDataFromStore(parameters, "GetTransportationsAmount");
+            return data.FirstOrDefault();
 
-            return new TransportationsAmount
-            {
-                AmountNotDelivery = amountNotDelivery ?? 0,
-                AmoutWattingToChina = amountwattingToChina ?? 0,
-                AmountInChina = amountInChina ?? 0,
-                AmountInVietnam = amountInVietnam ?? 0,
-                AmountPay = amountInVietnam ?? 0
-            };
         }
 
         public class CheckWarehouse

@@ -1,5 +1,6 @@
 ﻿using NhapHangV2.Entities.Catalogue;
 using NhapHangV2.Entities.DomainEntities;
+using NhapHangV2.Entities.Search;
 using NhapHangV2.Interface.Services.DomainServices;
 using System;
 using System.Collections.Generic;

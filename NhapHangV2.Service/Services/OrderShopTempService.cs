@@ -115,7 +115,9 @@ namespace NhapHangV2.Service.Services
                     if (orderTemps.Count >= link)
                         throw new AppException("Đã vượt quá số lượng đặt hàng");
 
-                    var orderShopTemp = await this.GetSingleAsync(x => !x.Deleted && x.UID == UID && x.ShopId == item.ShopId);
+                    var orderShopTemp = await this.GetSingleAsync(x => !x.Deleted && x.UID == UID
+                        && x.ShopId.Equals(item.ShopId.Trim())
+                        && x.ShopName.Equals(item.ShopName.Trim()));
                     if (orderShopTemp == null) //Chưa có shop chưa đặt
                     {
                         item.UID = UID;
@@ -158,6 +160,12 @@ namespace NhapHangV2.Service.Services
                     }
 
                     //Cập nhật tiền
+                    if (orderShopTemp != null) //Chưa có shop chưa đặt
+                    {
+                        var existOrderTemp = unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted && x.UID == UID && x.OrderShopTempId == orderShopTemp.Id).ToList();
+                        existOrderTemp.Add(item.OrderTemps.FirstOrDefault());
+                        item.OrderTemps = existOrderTemp;
+                    }
                     item = await UpdatePrice(item);
 
                     unitOfWork.Repository<OrderShopTemp>().Update(item);
@@ -287,7 +295,7 @@ namespace NhapHangV2.Service.Services
             item.PriceCNY = 0;
             foreach (var jtem in orderTemps)
             {
-                item.PriceCNY = (jtem.Quantity * jtem.PricePromotion) ?? 0;
+                item.PriceCNY += (jtem.Quantity * jtem.PricePromotion) ?? 0;
 
                 //Này dành cho phí kiểm hàng
                 if (item.IsCheckProduct == true)
@@ -372,6 +380,48 @@ namespace NhapHangV2.Service.Services
                 item.IsPackedPrice = 0;
 
             return item;
+        }
+
+        public async Task<PagedList<OrderShopTemp>> DeleteOrderShopTempAfter30days(PagedList<OrderShopTemp> orderShopTemps)
+        {
+
+            using (var dbContextTransaction = Context.Database.BeginTransaction())
+            {
+                try
+                {
+                    List<OrderTemp> orderTempsMustDelete = new List<OrderTemp>();
+                    foreach (var item in orderShopTemps.Items.ToList())
+                    {
+                        //Check item created after 30 days 
+                        TimeSpan period = (DateTime.Now).Subtract(item.Created ?? DateTime.Now);
+                        if (period.Days > 30)
+                        {
+                            //Add ordertemp to orderTempsMustDelete
+                            orderTempsMustDelete.AddRange(await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => x.OrderShopTempId == item.Id).ToListAsync());
+
+                            //Delte ordershoptemp
+                            unitOfWork.Repository<OrderShopTemp>().Delete(item);
+                            orderShopTemps.Items.Remove(item);
+                            orderShopTemps.TotalItem--;
+                        }
+                    }
+                    //Delete Ordertemps
+                    foreach (var orderTemp in orderTempsMustDelete)
+                    {
+                        unitOfWork.Repository<OrderTemp>().Delete(orderTemp);
+                    }
+
+                    await unitOfWork.SaveAsync();
+                    await dbContextTransaction.CommitAsync();
+
+                    return orderShopTemps;
+                }
+                catch (Exception ex)
+                {
+                    await dbContextTransaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
         }
     }
 }

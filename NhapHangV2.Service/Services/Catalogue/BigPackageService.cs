@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using NhapHangV2.Entities;
 using NhapHangV2.Entities.Catalogue;
 using NhapHangV2.Entities.DomainEntities;
+using NhapHangV2.Entities.Search;
 using NhapHangV2.Interface.Services.Catalogue;
 using NhapHangV2.Interface.UnitOfWork;
 using NhapHangV2.Service.Services.DomainServices;
@@ -17,11 +18,11 @@ using System.Threading.Tasks;
 
 namespace NhapHangV2.Service.Services.Catalogue
 {
-    public class BigPackageService : CatalogueService<BigPackage, CatalogueSearch>, IBigPackageService
+    public class BigPackageService : DomainService<BigPackage, BigPackageSearch>, IBigPackageService
     {
         public BigPackageService(IAppUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
         {
-            IsUseStore = true;
+
         }
 
         protected override string GetStoreProcName()

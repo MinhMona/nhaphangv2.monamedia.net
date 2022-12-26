@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 
 namespace NhapHangV2.Extensions
 {
@@ -54,6 +55,9 @@ namespace NhapHangV2.Extensions
                     case KeyNotFoundException e: //404
                         context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                         break;
+                    case SecurityTokenExpiredException e:
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        break;
                     case TimeoutException e: //408
                         context.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
                         break;
@@ -75,17 +79,11 @@ namespace NhapHangV2.Extensions
 
                         break;
                 }
-                //var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                //var result = JsonSerializer.Serialize(new AppDomainResult()
-                //{
-                //    ResultCode = response.StatusCode,
-                //    ResultMessage = error?.Message,
-                //    Success = false
-                //}, options);
+
                 var result = new AppDomainResult()
                 {
                     ResultCode = context.Response.StatusCode,
-                    ResultMessage = error.Message,
+                    ResultMessage = error?.Message,
                     Success = false
                 }.ToString();
 
