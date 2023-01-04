@@ -13,6 +13,6 @@ namespace NhapHangV2.Interface.Services
     public interface IOrderShopTempService : IDomainService<OrderShopTemp, OrderShopTempSearch>
     {
         Task<OrderShopTemp> UpdatePrice(OrderShopTemp item);
-        Task<PagedList<OrderShopTemp>> DeleteOrderShopTempAfter30days(PagedList<OrderShopTemp> orderShopTemps);
+        Task<PagedList<OrderShopTemp>> DeleteOrderShopTempAfterDays(PagedList<OrderShopTemp> orderShopTemps);
     }
 }

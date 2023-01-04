@@ -12,6 +12,11 @@ namespace NhapHangV2.Entities
     public class SmallPackage : DomainEntities.AppDomain
     {
         /// <summary>
+        /// Trạng thái thanh toán
+        /// </summary>
+        public bool? IsPayment { get; set; } = false;
+
+        /// <summary>
         /// Id đơn vận chuyển hộ
         /// </summary>
         public int? TransportationOrderId { get; set; } = 0;

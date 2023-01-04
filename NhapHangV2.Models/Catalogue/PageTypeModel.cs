@@ -83,5 +83,11 @@ namespace NhapHangV2.Models.Catalogue
         /// Danh sách bài viết
         /// </summary>
         public List<PageModel> Pages { get; set; } = new List<PageModel>();
+
+        /// <summary>
+        /// Danh sách bài viết JSON
+        /// </summary>
+        public string PagesJson { get; set; }
+
     }
 }

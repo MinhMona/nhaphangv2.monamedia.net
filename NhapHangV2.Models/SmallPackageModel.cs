@@ -10,6 +10,12 @@ namespace NhapHangV2.Models
 {
     public class SmallPackageModel : AppDomainModel
     {
+
+        /// <summary>
+        /// Trạng thái thanh toán
+        /// </summary>
+        public bool? IsPayment { get; set; }
+
         /// <summary>
         /// UID (SmallPackage = MainOrder = TransportationOrder)
         /// </summary>
@@ -239,7 +245,17 @@ namespace NhapHangV2.Models
         /// <summary>
         /// Loại đơn hàng
         /// </summary>
-        public int? OrderType { get; set; }
+        public int? OrderType
+        {
+            get
+            {
+                if (MainOrderCodeId != null && MainOrderCodeId > 0)
+                    return 1;
+                else if (TransportationOrderId != null && TransportationOrderId > 0)
+                    return 2;
+                else return 3;
+            }
+        }
 
         /// <summary>
         /// Tên loại đơn hàng
@@ -248,6 +264,8 @@ namespace NhapHangV2.Models
         {
             get
             {
+                //if (OrderType != null)
+                //{
                 switch (OrderType)
                 {
                     case (int)TypeOrder.DonHangMuaHo:
@@ -259,6 +277,15 @@ namespace NhapHangV2.Models
                     default:
                         return string.Empty;
                 }
+                //}
+                //else
+                //{
+                //    if (MainOrderCodeId != null && MainOrderCodeId > 0)
+                //        return "Đơn hàng mua hộ";
+                //    else if (TransportationOrderId != null && TransportationOrderId > 0)
+                //        return "Đơn hàng ký gửi";
+                //    else return "Đơn không xác định";
+                //}
             }
         }
 

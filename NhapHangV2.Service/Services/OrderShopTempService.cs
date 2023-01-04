@@ -8,6 +8,8 @@ using NhapHangV2.Entities.Search;
 using NhapHangV2.Extensions;
 using NhapHangV2.Interface.DbContext;
 using NhapHangV2.Interface.Services;
+using NhapHangV2.Interface.Services.Catalogue;
+using NhapHangV2.Interface.Services.Configuration;
 using NhapHangV2.Interface.UnitOfWork;
 using NhapHangV2.Service.Services.DomainServices;
 using NhapHangV2.Utilities;
@@ -23,6 +25,7 @@ namespace NhapHangV2.Service.Services
     public class OrderShopTempService : DomainService<OrderShopTemp, OrderShopTempSearch>, IOrderShopTempService
     {
         protected readonly IAppDbContext Context;
+
         public OrderShopTempService(IServiceProvider serviceProvider, IAppUnitOfWork unitOfWork, IMapper mapper, IAppDbContext Context) : base(unitOfWork, mapper)
         {
             this.Context = Context;
@@ -333,8 +336,6 @@ namespace NhapHangV2.Service.Services
             //Phí giao hàng nhanh
             item.IsFastPrice = item.IsFast == true ? (item.PriceVND * 5 / 100) : 0;
 
-            //Phí giao tận nhà - Hàng về VN mới tính
-
             //Phí bảo hiểm của shop
             item.InsuranceMoney = item.IsInsurance == true ? (item.PriceVND * conf.InsurancePercent) / 100 : 0;
 
@@ -372,17 +373,17 @@ namespace NhapHangV2.Service.Services
                 item.IsCheckProductPrice = 0;
 
             //Phí đóng gỗ (dựa theo bảng FeePackaged)
-            if (item.IsPacked == true)
-            {
+            //if (item.IsPacked == true)
+            //{
 
-            }
-            else
-                item.IsPackedPrice = 0;
+            //}
+            //else
+            //    item.IsPackedPrice = 0;
 
             return item;
         }
 
-        public async Task<PagedList<OrderShopTemp>> DeleteOrderShopTempAfter30days(PagedList<OrderShopTemp> orderShopTemps)
+        public async Task<PagedList<OrderShopTemp>> DeleteOrderShopTempAfterDays(PagedList<OrderShopTemp> orderShopTemps)
         {
 
             using (var dbContextTransaction = Context.Database.BeginTransaction())
@@ -392,9 +393,11 @@ namespace NhapHangV2.Service.Services
                     List<OrderTemp> orderTempsMustDelete = new List<OrderTemp>();
                     foreach (var item in orderShopTemps.Items.ToList())
                     {
-                        //Check item created after 30 days 
+                        //Check item created after days
+                        int dayRemoveConfig = (await unitOfWork.Repository<NhapHangV2.Entities.Configurations>().GetQueryable().FirstOrDefaultAsync()).RemoveCartDay;
+
                         TimeSpan period = (DateTime.Now).Subtract(item.Created ?? DateTime.Now);
-                        if (period.Days > 30)
+                        if (period.Days > dayRemoveConfig)
                         {
                             //Add ordertemp to orderTempsMustDelete
                             orderTempsMustDelete.AddRange(await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => x.OrderShopTempId == item.Id).ToListAsync());

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FirebaseAdmin;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ namespace NhapHangV2.API.Controllers.Auth
     [Description("Authenticate")]
     public class AuthController : NhapHangV2.BaseAPI.Controllers.Auth.AuthController
     {
-        public AuthController(IServiceProvider serviceProvider, IConfiguration configuration, IMapper mapper, ILogger<AuthController> logger) : base(serviceProvider, configuration, mapper, logger)
+        public AuthController(IServiceProvider serviceProvider, IConfiguration configuration, IMapper mapper, ILogger<AuthController> logger, FirebaseApp firebaseApp) : base(serviceProvider, configuration, mapper, logger, firebaseApp)
         {
         }
     }

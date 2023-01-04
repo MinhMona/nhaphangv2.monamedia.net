@@ -34,7 +34,7 @@ namespace NhapHangV2.API.Controllers.Catalogue
     {
         protected IMapper mapper;
         protected IWebHostEnvironment env;
-        
+
         protected readonly IMenuService menuService;
         protected readonly IConfigurationsService configurationsService;
         public MenuController(IServiceProvider serviceProvider, ILogger<MenuController> logger, IWebHostEnvironment env, IMapper mapper)
@@ -127,8 +127,7 @@ namespace NhapHangV2.API.Controllers.Catalogue
             bool success = false;
             if (ModelState.IsValid)
             {
-                if (string.IsNullOrEmpty(itemModel.Code))
-                    itemModel.Code = AppUtilities.RemoveUnicode(itemModel.Name).ToLower().Replace(" ", "-");
+                itemModel.Code = AppUtilities.RemoveUnicode(itemModel.Name).ToLower().Replace(" ", "-");
                 var item = mapper.Map<Menu>(itemModel);
                 if (item != null)
                 {

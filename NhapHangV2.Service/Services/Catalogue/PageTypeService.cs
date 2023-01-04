@@ -13,10 +13,15 @@ using System.Threading.Tasks;
 
 namespace NhapHangV2.Service.Services.Catalogue
 {
-    public class PageTypeService : CatalogueService<PageType, CatalogueSearch>, IPageTypeService
+    public class PageTypeService : DomainService<PageType, CatalogueSearch>, IPageTypeService
     {
         public PageTypeService(IAppUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
         {
+        }
+
+        protected override string GetStoreProcName()
+        {
+            return "PageType_GetPagingData";
         }
 
         public override async Task<PageType> GetByIdAsync(int id)
@@ -30,7 +35,7 @@ namespace NhapHangV2.Service.Services.Catalogue
             return item;
         }
 
-        public override async Task<PageType> GetByCodeAsync(string code)
+        public async Task<PageType> GetByCodeAsync(string code)
         {
             var item = await Queryable.Where(e => e.Code == code && !e.Deleted).AsNoTracking().FirstOrDefaultAsync();
             if (item == null)

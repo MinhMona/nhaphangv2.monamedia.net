@@ -184,6 +184,10 @@ namespace NhapHangV2.Entities
         /// Link Google Map
         /// </summary>
         public string GoogleMapLink { get; set; } = string.Empty;
+        /// <summary>
+        /// Số ngày tự động xóa giỏ hàng
+        /// </summary>
+        public int RemoveCartDay { get; set; }
         #endregion
 
         #region Cấu hình tỉ giá và hoa hồng
@@ -196,13 +200,13 @@ namespace NhapHangV2.Entities
         /// <summary>
         /// Tỉ giá thanh toán hộ
         /// </summary>
-        [Column(TypeName = "decimal(18,0)")] 
+        [Column(TypeName = "decimal(18,0)")]
         public decimal? PricePayHelpDefault { get; set; } = 0;
 
         /// <summary>
         /// Tỉ giá ký gửi
         /// </summary>
-        [Column(TypeName = "decimal(18,0)")] 
+        [Column(TypeName = "decimal(18,0)")]
         public decimal? AgentCurrency { get; set; } = 0;
 
         /// <summary>
@@ -364,17 +368,17 @@ namespace NhapHangV2.Entities
 
         public int? PercentOrder { get; set; } = 0;
 
-        [Column(TypeName = "decimal(18,0)")] 
+        [Column(TypeName = "decimal(18,0)")]
         public decimal? PriceSendDefaultHN { get; set; } = 0;
 
-        [Column(TypeName = "decimal(18,0)")] 
+        [Column(TypeName = "decimal(18,0)")]
         public decimal? PriceSendDefaultSG { get; set; } = 0;
 
-        [Column(TypeName = "decimal(18,0)")] 
+        [Column(TypeName = "decimal(18,0)")]
         public decimal? CurrencyIncome { get; set; } = 0;
         public int? ChietKhauPercent { get; set; } = 0;
 
-        [Column(TypeName = "decimal(18,0)")] 
+        [Column(TypeName = "decimal(18,0)")]
         public decimal? PriceCheckOutWareDefault { get; set; } = 0;
     }
 }

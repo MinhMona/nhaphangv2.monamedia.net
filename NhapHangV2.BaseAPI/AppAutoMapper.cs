@@ -161,6 +161,10 @@ namespace NhapHangV2.Models.AutoMapper
             CreateMap<WithdrawRequest, Withdraw>().ReverseMap();
             CreateMap<PagedList<WithdrawModel>, PagedList<Withdraw>>().ReverseMap();
 
+            CreateMap<ContactUsModel, ContactUs>().ReverseMap();
+            CreateMap<ContactUsRequest, ContactUs>().ReverseMap();
+            CreateMap<PagedList<ContactUsModel>, PagedList<ContactUs>>().ReverseMap();
+
             #region Auth
             CreateMap<PermissionModel, Permissions>().ReverseMap();
             //CreateMap<PermissionRequest, Permissions>().ReverseMap();

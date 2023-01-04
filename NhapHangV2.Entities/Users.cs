@@ -237,6 +237,12 @@ namespace NhapHangV2.Entities
         [NotMapped]
         public bool IsChangeCurrency { get; set; } = false;
 
+        /// <summary>
+        /// id đăng nhập google, facebook
+        /// </summary>
+        [StringLength(100)]
+        public string FireBaseID { get; set; } = string.Empty;
+
         //public string FeeTQVNPerVolume { get; set; } = string.Empty;
 
         //public string TienTichLuy { get; set; } = string.Empty;

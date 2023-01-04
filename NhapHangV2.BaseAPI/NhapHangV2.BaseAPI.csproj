@@ -8,11 +8,11 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;1591</NoWarn>
-    <DocumentationFile>D:\Mona Media\NhapHang\NhapHangV2\NhapHangV2.BaseAPI\NhapHangV2.BaseAPI.xml</DocumentationFile>
+    <DocumentationFile>C:\Users\t590\source\repos\nhaphangv2.monamedia.net\NhapHangV2.BaseAPI\NhapHangV2.BaseAPI.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\Mona Media\NhapHang\NhapHangV2\NhapHangV2.BaseAPI\NhapHangV2.BaseAPI.xml</DocumentationFile>
+    <DocumentationFile>C:\Users\t590\source\repos\nhaphangv2.monamedia.net\NhapHangV2.BaseAPI\NhapHangV2.BaseAPI.xml</DocumentationFile>
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FirebaseAdmin" Version="2.3.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
   </ItemGroup>

@@ -37,23 +37,24 @@ namespace NhapHangV2.Extensions
             {
                 controllerName = descriptor.ControllerName;
             }
-            var expirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(context.HttpContext.User.Claims.ElementAt(2).Value)).DateTime;
-            
-            if (DateTime.UtcNow.AddHours(7) > expirationTime)
-            {
-                context.Result = new JsonResult(new AppDomainResult()
-                {
-                    ResultCode = (int)HttpStatusCode.Unauthorized,
-                    ResultMessage = "Outdated, please login again"
-                });
-                return;
-            }
+
             if (user == null)
             {
                 context.Result = new JsonResult(new AppDomainResult()
                 {
                     ResultCode = (int)HttpStatusCode.Unauthorized,
                     ResultMessage = "Unauthorized"
+                });
+                return;
+            }
+            var expirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(context.HttpContext.User.Claims.ElementAt(2).Value)).DateTime;
+
+            if ((DateTime.UtcNow.AddHours(7).AddMinutes(1)) > expirationTime)
+            {
+                context.Result = new JsonResult(new AppDomainResult()
+                {
+                    ResultCode = (int)HttpStatusCode.Unauthorized,
+                    ResultMessage = "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại"
                 });
                 return;
             }

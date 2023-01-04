@@ -130,5 +130,7 @@ namespace NhapHangV2.Models
         public string Address { get; set; }
 
         public List<OrderTempModel> OrderTemps { get; set; }
+
+        public string OrderTempsJson { get; set; }
     }
 }

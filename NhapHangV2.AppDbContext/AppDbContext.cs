@@ -87,6 +87,7 @@ namespace NhapHangV2.AppDbContext
             modelBuilder.Entity<WarehouseFee>(x => x.ToTable("WarehouseFee"));
             modelBuilder.Entity<Withdraw>(x => x.ToTable("Withdraw"));
             modelBuilder.Entity<CustomerTalk>(x => x.ToTable("CustomerTalk"));
+            modelBuilder.Entity<ContactUs>(x => x.ToTable("ContactUs"));
 
             #region Configuration
             modelBuilder.Entity<EmailConfigurations>(x => x.ToTable("EmailConfigurations"));

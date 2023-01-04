@@ -150,6 +150,7 @@ namespace NhapHangV2.BaseAPI
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IWarehouseFeeService, WarehouseFeeService>();
             services.AddScoped<IWithdrawService, WithdrawService>();
+            services.AddScoped<IContactUsService, ContactUsService>();
 
             #region ToolConfig
             services.AddScoped<IToolConfigService, ToolConfigService>();

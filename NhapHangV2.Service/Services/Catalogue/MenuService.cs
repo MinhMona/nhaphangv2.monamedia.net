@@ -23,11 +23,12 @@ namespace NhapHangV2.Service.Services.Catalogue
 
         public async Task<PagedList<MenuModel>> GetSubMenu(PagedList<MenuModel> dataList)
         {
-            foreach (var item in dataList.Items)
+
+            for(int i=0; i<dataList.Items.Count;)
             {
-                if (item.Parent == null || Convert.ToInt32(item.Parent) == 0)
+                if (dataList.Items[i].Parent == null || Convert.ToInt32(dataList.Items[i].Parent) == 0)
                 {
-                    var subMenus = await unitOfWork.Repository<Menu>().GetQueryable().Where(e => e.Parent == item.Id && !e.Deleted).Select(e => new MenuModel()
+                    var subMenus = await unitOfWork.Repository<Menu>().GetQueryable().Where(e => e.Parent == dataList.Items[i].Id && !e.Deleted).Select(e => new MenuModel()
                     {
                         Active = e.Active,
                         Code = e.Code,
@@ -45,11 +46,12 @@ namespace NhapHangV2.Service.Services.Catalogue
                         Updated = e.Updated,
                         UpdatedBy = e.UpdatedBy
                     }).ToListAsync();
-                    item.Children = subMenus;
+                    dataList.Items[i].Children = subMenus;
+                    i++;
                 }
                 else
                 {
-                    dataList.Items.Remove(item);
+                    dataList.Items.RemoveAt(i);
                 }
             }
             return dataList;

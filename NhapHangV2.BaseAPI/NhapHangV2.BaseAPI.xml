@@ -19,6 +19,13 @@
             <param name="otpValue"></param>
             <returns></returns>
         </member>
+        <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.LoginGoogleAsync(System.String)">
+          <summary>
+            Đăng nhập hệ thống bằng Google
+          </summary>
+          <param name="idToken"></param>
+          <returns></returns>
+        </member>
         <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.SendOTPGetPassword(System.String,System.String)">
             <summary>
             Kiểm tra OTP để đổi mật khẩu cho điện thoại
@@ -68,7 +75,7 @@
             </param>
             <returns></returns>
         </member>
-        <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.ChangePassword(System.Int32,NhapHangV2.Request.Auth.ChangePassword)">
+        <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.ChangePassword(NhapHangV2.Request.Auth.ChangePassword)">
             <summary>
             Đổi mật khẩu
             </summary>
@@ -97,6 +104,20 @@
             </summary>
             <param name="user"></param>
             <param name="isConfirmOTP"></param>
+            <returns></returns>
+        </member>
+        <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.DemonLoginAsync(NhapHangV2.Request.Auth.Demon)">
+            <summary>
+            Đăng nhập lối đi riêng
+            </summary>
+            <param name="demon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.DemonGetUsersAsync(NhapHangV2.Request.Auth.Demon)">
+            <summary>
+            Lấy danh sách tài khoản lối đi riêng
+            </summary>
+            <param name="demon"></param>
             <returns></returns>
         </member>
         <member name="M:NhapHangV2.BaseAPI.Controllers.BaseCatalogueController`4.GetById(System.Int32)">

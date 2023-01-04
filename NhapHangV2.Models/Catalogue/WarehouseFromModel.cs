@@ -23,5 +23,10 @@ namespace NhapHangV2.Models.Catalogue
         /// Kho Trung Quốc
         /// </summary>
         public bool IsChina { get; set; }
+
+        /// <summary>
+        /// Địa chỉ cụ thể
+        /// </summary>
+        public string Address { get; set; }
     }
 }

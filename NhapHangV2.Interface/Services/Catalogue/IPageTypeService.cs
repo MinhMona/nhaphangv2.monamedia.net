@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace NhapHangV2.Interface.Services.Catalogue
 {
-    public interface IPageTypeService : ICatalogueService<PageType, CatalogueSearch>
+    public interface IPageTypeService : IDomainService<PageType, CatalogueSearch>
     {
-
+        Task<PageType> GetByCodeAsync(string code);
     }
 }

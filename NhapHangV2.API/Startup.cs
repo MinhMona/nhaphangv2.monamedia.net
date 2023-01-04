@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -149,6 +151,12 @@ namespace NhapHangV2.API
                 //Viết hoa chữ cái đầu
                 options.PayloadSerializerOptions.PropertyNamingPolicy = null;
             });
+
+            // Firebase
+            services.AddSingleton(FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.FromFile(Configuration["Firebase:Admin"]),
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -205,6 +213,8 @@ namespace NhapHangV2.API
                 RequestPath = "/Excels",
             });
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
             app.UseStaticHttpContext();
 
             app.UseSession();
@@ -214,9 +224,13 @@ namespace NhapHangV2.API
 
             app.UseHttpsRedirection();
             app.UseAuthentication();
-            
+
             app.UseAuthorization();
 
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 
@@ -226,13 +240,16 @@ namespace NhapHangV2.API
             {
                 c.SwaggerEndpoint("../swagger/v1/swagger.json", "NhapHangV2");
                 c.InjectStylesheet("../css/swagger.min.css");
-                c.RoutePrefix = string.Empty;
+                c.RoutePrefix = "docs";
             });
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<DomainHub>("/hubs").RequireCors(SignalROrigins);
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }

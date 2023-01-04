@@ -30,17 +30,15 @@ namespace NhapHangV2.API.Controllers.Catalogue
     public class PageTypeController : ControllerBase
     {
         protected IMapper mapper;
-        protected IWebHostEnvironment env;
         protected IConfiguration configuration;
 
         protected readonly IPageTypeService pageTypeService;
-        public PageTypeController(IServiceProvider serviceProvider, ILogger<PageTypeController> logger, IWebHostEnvironment env, IMapper mapper, IConfiguration configuration)
+        public PageTypeController(IServiceProvider serviceProvider, ILogger<PageTypeController> logger, IWebHostEnvironment env, IMapper mapper, IConfiguration configuration) 
         {
-            this.mapper = mapper;
-            this.env = env;
             this.configuration = configuration;
-
             pageTypeService = serviceProvider.GetRequiredService<IPageTypeService>();
+            this.mapper = mapper;
+
         }
 
         /// <summary>
@@ -120,124 +118,12 @@ namespace NhapHangV2.API.Controllers.Catalogue
                     if (!string.IsNullOrEmpty(messageUserCheck))
                         throw new KeyNotFoundException(messageUserCheck);
 
-                    #region Upload ảnh code cũ
-                    //Hình ảnh
-                    //List<string> filePaths = new List<string>();
-                    //List<string> folderUploadPaths = new List<string>();
-
-                    ////OG Image
-                    //string OGImage = itemModel.OGImage;
-                    //if (!string.IsNullOrEmpty(OGImage))
-                    //{
-                    //    string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, OGImage);
-                    //    // ------- START GET URL FOR FILE
-                    //    string folderUploadPath = string.Empty;
-                    //    var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //    folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //    string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //    // Kiểm tra có tồn tại file trong temp chưa?
-                    //    if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //    {
-                    //        FileUtilities.CreateDirectory(folderUploadPath);
-                    //        FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //        folderUploadPaths.Add(fileUploadPath);
-                    //        var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //        string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                    // ------- END GET URL FOR FILE
-                    //        filePaths.Add(filePath);
-
-                    //        //Gán lại cho itemModel để mapper
-                    //        item.OGImage = fileUrl;
-                    //    }
-                    //}
-
-                    ////OG Facebook IMG
-                    //string OGFacebookIMG = itemModel.OGFacebookIMG;
-                    //if (!string.IsNullOrEmpty(OGFacebookIMG))
-                    //{
-                    //    string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, OGFacebookIMG);
-                    //    // ------- START GET URL FOR FILE
-                    //    string folderUploadPath = string.Empty;
-                    //    var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //    folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //    string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //    // Kiểm tra có tồn tại file trong temp chưa?
-                    //    if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //    {
-                    //        FileUtilities.CreateDirectory(folderUploadPath);
-                    //        FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //        folderUploadPaths.Add(fileUploadPath);
-                    //        var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //        string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                    // ------- END GET URL FOR FILE
-                    //        filePaths.Add(filePath);
-
-                    //        //Gán lại cho itemModel để mapper
-                    //        item.OGFacebookIMG = fileUrl;
-                    //    }
-                    //}
-
-                    ////OG Facebook IMG
-                    //string OGTwitterIMG = itemModel.OGTwitterIMG;
-                    //if (!string.IsNullOrEmpty(OGTwitterIMG))
-                    //{
-                    //    string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, OGTwitterIMG);
-                    //    // ------- START GET URL FOR FILE
-                    //    string folderUploadPath = string.Empty;
-                    //    var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //    folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //    string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //    // Kiểm tra có tồn tại file trong temp chưa?
-                    //    if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //    {
-                    //        FileUtilities.CreateDirectory(folderUploadPath);
-                    //        FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //        folderUploadPaths.Add(fileUploadPath);
-                    //        var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //        string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                    // ------- END GET URL FOR FILE
-                    //        filePaths.Add(filePath);
-
-                    //        //Gán lại cho itemModel để mapper
-                    //        item.OGTwitterIMG = fileUrl;
-                    //    }
-                    //}
-                    #endregion
-
                     success = await pageTypeService.CreateAsync(item);
                     if (success)
                     {
                         appDomainResult.ResultCode = (int)HttpStatusCode.OK;
                         appDomainResult.Data = item;
                     }
-                    #region Response cũ
-                    //if (success)
-                    //{
-                    //    appDomainResult.ResultCode = (int)HttpStatusCode.OK;
-                    //    appDomainResult.Data = item;
-
-                    //    //// Remove file trong thư mục temp
-                    //    if (filePaths.Any())
-                    //    {
-                    //        foreach (var filePath in filePaths)
-                    //        {
-                    //            System.IO.File.Delete(filePath);
-                    //        }
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    if (folderUploadPaths.Any())
-                    //    {
-                    //        foreach (var folderUploadPath in folderUploadPaths)
-                    //        {
-                    //            System.IO.File.Delete(folderUploadPath);
-                    //        }
-                    //    }
-                    //    throw new Exception("Lỗi trong quá trình xử lý");
-                    //}
-                    #endregion
-
                     appDomainResult.Success = success;
                 }
                 else
@@ -272,122 +158,12 @@ namespace NhapHangV2.API.Controllers.Catalogue
                     var messageUserCheck = await pageTypeService.GetExistItemMessage(item);
                     if (!string.IsNullOrEmpty(messageUserCheck))
                         throw new KeyNotFoundException(messageUserCheck);
-                    #region Upload ảnh code cũ
-                    //Hình ảnh
-                    //List<string> filePaths = new List<string>();
-                    //List<string> folderUploadPaths = new List<string>();
-
-                    ////OG Image
-                    //string OGImage = itemModel.OGImage;
-                    //if (!string.IsNullOrEmpty(OGImage))
-                    //{
-                    //    string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, OGImage);
-                    //    // ------- START GET URL FOR FILE
-                    //    string folderUploadPath = string.Empty;
-                    //    var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //    folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //    string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //    // Kiểm tra có tồn tại file trong temp chưa?
-                    //    if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //    {
-                    //        FileUtilities.CreateDirectory(folderUploadPath);
-                    //        FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //        folderUploadPaths.Add(fileUploadPath);
-                    //        var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //        string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                    // ------- END GET URL FOR FILE
-                    //        filePaths.Add(filePath);
-
-                    //        //Gán lại cho itemModel để mapper
-                    //        item.OGImage = fileUrl;
-                    //    }
-                    //}
-
-                    ////OG Facebook IMG
-                    //string OGFacebookIMG = itemModel.OGFacebookIMG;
-                    //if (!string.IsNullOrEmpty(OGFacebookIMG))
-                    //{
-                    //    string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, OGFacebookIMG);
-                    //    // ------- START GET URL FOR FILE
-                    //    string folderUploadPath = string.Empty;
-                    //    var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //    folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //    string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //    // Kiểm tra có tồn tại file trong temp chưa?
-                    //    if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //    {
-                    //        FileUtilities.CreateDirectory(folderUploadPath);
-                    //        FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //        folderUploadPaths.Add(fileUploadPath);
-                    //        var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //        string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                    // ------- END GET URL FOR FILE
-                    //        filePaths.Add(filePath);
-
-                    //        //Gán lại cho itemModel để mapper
-                    //        item.OGFacebookIMG = fileUrl;
-                    //    }
-                    //}
-
-                    ////OG Facebook IMG
-                    //string OGTwitterIMG = itemModel.OGTwitterIMG;
-                    //if (!string.IsNullOrEmpty(OGTwitterIMG))
-                    //{
-                    //    string filePath = Path.Combine(env.ContentRootPath, CoreContants.UPLOAD_FOLDER_NAME, CoreContants.TEMP_FOLDER_NAME, OGTwitterIMG);
-                    //    // ------- START GET URL FOR FILE
-                    //    string folderUploadPath = string.Empty;
-                    //    var folderUpload = configuration.GetValue<string>("MySettings:FolderUpload");
-                    //    folderUploadPath = Path.Combine(folderUpload, CoreContants.UPLOAD_FOLDER_NAME); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //    string fileUploadPath = Path.Combine(folderUploadPath, Path.GetFileName(filePath));
-                    //    // Kiểm tra có tồn tại file trong temp chưa?
-                    //    if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(fileUploadPath))
-                    //    {
-                    //        FileUtilities.CreateDirectory(folderUploadPath);
-                    //        FileUtilities.SaveToPath(fileUploadPath, System.IO.File.ReadAllBytes(filePath));
-                    //        folderUploadPaths.Add(fileUploadPath);
-                    //        var currentLinkSite = $"{Extensions.HttpContext.Current.Request.Scheme}://{Extensions.HttpContext.Current.Request.Host}/{CoreContants.UPLOAD_FOLDER_NAME}/";
-                    //        string fileUrl = Path.Combine(currentLinkSite, Path.GetFileName(filePath)); //Có thể add tên thư mục vào đây để có thể đưa hình vào thư mục đó
-                    //                                                                                    // ------- END GET URL FOR FILE
-                    //        filePaths.Add(filePath);
-
-                    //        //Gán lại cho itemModel để mapper
-                    //        item.OGTwitterIMG = fileUrl;
-                    //    }
-                    //}
-                    #endregion
 
                     success = await pageTypeService.UpdateAsync(item);
                     if (success)
                     {
                         appDomainResult.ResultCode = (int)HttpStatusCode.OK;
                     }
-                    #region Response cũ
-                    //if (success)
-                    //{
-                    //    appDomainResult.ResultCode = (int)HttpStatusCode.OK;
-
-                    //    //// Remove file trong thư mục temp
-                    //    if (filePaths.Any())
-                    //    {
-                    //        foreach (var filePath in filePaths)
-                    //        {
-                    //            System.IO.File.Delete(filePath);
-                    //        }
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    if (folderUploadPaths.Any())
-                    //    {
-                    //        foreach (var folderUploadPath in folderUploadPaths)
-                    //        {
-                    //            System.IO.File.Delete(folderUploadPath);
-                    //        }
-                    //    }
-
-                    //    throw new Exception("Lỗi trong quá trình xử lý");
-                    //}
-                    #endregion
 
                     appDomainResult.Success = success;
                 }

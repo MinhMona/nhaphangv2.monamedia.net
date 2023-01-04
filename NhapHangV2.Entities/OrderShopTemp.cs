@@ -160,5 +160,9 @@ namespace NhapHangV2.Entities
 
         [NotMapped]
         public List<OrderTemp> OrderTemps { get; set; } = new List<OrderTemp>();
+
+        [NotMapped]
+        public string OrderTempsJson { get; set; } 
+
     }
 }

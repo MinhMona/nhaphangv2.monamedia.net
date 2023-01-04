@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NhapHangV2.Entities;
 using NhapHangV2.Entities.DomainEntities;
+using NhapHangV2.Entities.Search;
 using NhapHangV2.Interface.Services;
 using NhapHangV2.Interface.UnitOfWork;
 using NhapHangV2.Service.Services.DomainServices;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace NhapHangV2.Service.Services
 {
-    public class PageService : DomainService<Page, CatalogueSearch>, IPageService
+    public class PageService : DomainService<Page, PageSearch>, IPageService
     {
         public PageService(IAppUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
         {

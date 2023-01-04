@@ -315,7 +315,7 @@ namespace NhapHangV2.Service.Services
         /// <param name="userName"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public async Task<bool> Verify(string userName, string password)
+        public async Task<Users> Verify(string userName, string password)
         {
             var user = await Queryable
                 .Where(e => !e.Deleted
@@ -341,14 +341,14 @@ namespace NhapHangV2.Service.Services
                 }
                 if (user.Password == SecurityUtilities.HashSHA1(password))
                 {
-                    return true;
+                    return user;
                 }
                 else
-                    return false;
+                    throw new UnauthorizedAccessException("Tên đăng nhập hoặc mật khẩu không chính xác");
 
             }
             else
-                return false;
+                throw new UnauthorizedAccessException("Tên đăng nhập hoặc mật khẩu không chính xác");
         }
 
         /// <summary>
@@ -600,6 +600,11 @@ namespace NhapHangV2.Service.Services
                 return user;
             }
             return null;
+        }
+        public async Task<Users> GetUserByFireBaseIdToken(string idToken)
+        {
+            var user = await unitOfWork.Repository<Users>().GetQueryable().Where(x => x.FireBaseID.Equals(idToken)).FirstOrDefaultAsync();
+            return user;
         }
     }
 }

@@ -85,5 +85,11 @@ namespace NhapHangV2.Entities.Catalogue
         /// </summary>
         [NotMapped]
         public List<Page> Pages { get; set; } = new List<Page>();
+
+        /// <summary>
+        /// Danh sách bài viết store
+        /// </summary>
+        [NotMapped]
+        public string PagesJson { get; set; }
     }
 }

@@ -1168,7 +1168,9 @@ namespace NhapHangV2.Service.Services
                     else
                     {
                         smallPackages = await this.GetAsync(x => !x.Deleted && x.Active
-                            && (x.UID == user.Id && x.Status == 3 )
+
+                            && (x.UID == user.Id && x.Status == 3)
+
                         );
 
                         foreach (var smallPackage in smallPackages)

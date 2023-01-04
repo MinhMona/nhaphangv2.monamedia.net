@@ -12,5 +12,6 @@ namespace NhapHangV2.Request.Catalogue
         public string? Latitude { get; set; }
         public string? Longitude { get; set; }
         public bool IsChina { get; set; } = true;
+        public string? Address { get; set; }
     }
 }

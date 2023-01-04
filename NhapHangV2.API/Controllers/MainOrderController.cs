@@ -279,11 +279,11 @@ namespace NhapHangV2.API.Controllers
                 {
                     if (item.Status == (int?)StatusSmallPackage.DaVeKhoVN)
                     {
-                        item.Status = (int?)StatusSmallPackage.DaThanhToan;
+                        item.IsPayment = true;
                     }
                     success = await smallPackageService.UpdateFieldAsync(item, new Expression<Func<SmallPackage, object>>[]
                     {
-                        s => s.Status
+                        s => s.IsPayment
                     });
                     if (!success)
                         break;
@@ -618,7 +618,7 @@ namespace NhapHangV2.API.Controllers
                 {
                     appDomainResult.ResultCode = (int)HttpStatusCode.OK;
                 }
-                
+
                 appDomainResult.Success = success;
             }
             else

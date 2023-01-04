@@ -12,7 +12,7 @@ namespace NhapHangV2.Request.Catalogue
         /// <summary>
         /// Link menu
         /// </summary>
-        public string Link { get; set; }
+        public string? Link { get; set; }
 
         /// <summary>
         /// 1. Ngoài, 2. Trong

@@ -28,5 +28,10 @@ namespace NhapHangV2.Models.Catalogue
         /// Kho Việt Nam
         /// </summary>
         public bool IsChina { get; set; }
+
+        /// <summary>
+        /// Địa chỉ cụ thể
+        /// </summary>
+        public string Address { get; set; }
     }
 }

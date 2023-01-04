@@ -10,8 +10,12 @@ using NhapHangV2.Entities;
 using NhapHangV2.Entities.Search;
 using NhapHangV2.Extensions;
 using NhapHangV2.Interface.Services;
+using NhapHangV2.Interface.Services.Catalogue;
+using NhapHangV2.Interface.Services.Configuration;
 using NhapHangV2.Models;
 using NhapHangV2.Request;
+using NhapHangV2.Service.Services.Catalogue;
+using NhapHangV2.Service.Services.Configurations;
 using NhapHangV2.Utilities;
 using System;
 using System.Collections.Generic;
@@ -35,6 +39,9 @@ namespace NhapHangV2.API.Controllers
         private readonly IUserLevelService userLevelService;
         private readonly IConfigurationsService configurationsService;
         private readonly IMainOrderService mainOrderService;
+        protected readonly INotificationSettingService notificationSettingService;
+        protected readonly INotificationTemplateService notificationTemplateService;
+        protected readonly ISendNotificationService sendNotificationService;
 
         public OrderShopTempController(IServiceProvider serviceProvider, ILogger<BaseController<OrderShopTemp, OrderShopTempModel, OrderShopTempRequest, OrderShopTempSearch>> logger, IWebHostEnvironment env) : base(serviceProvider, logger, env)
         {
@@ -45,6 +52,9 @@ namespace NhapHangV2.API.Controllers
             userLevelService = serviceProvider.GetRequiredService<IUserLevelService>();
             configurationsService = serviceProvider.GetRequiredService<IConfigurationsService>();
             mainOrderService = serviceProvider.GetRequiredService<IMainOrderService>();
+            notificationSettingService = serviceProvider.GetRequiredService<INotificationSettingService>();
+            notificationTemplateService = serviceProvider.GetRequiredService<INotificationTemplateService>();
+            sendNotificationService = serviceProvider.GetRequiredService<ISendNotificationService>();
         }
 
         /// <summary>
@@ -62,7 +72,7 @@ namespace NhapHangV2.API.Controllers
             if (ModelState.IsValid)
             {
                 PagedList<OrderShopTemp> pagedData = await this.domainService.GetPagedListData(baseSearch);
-                pagedData = await orderShopTempService.DeleteOrderShopTempAfter30days(pagedData);
+                pagedData = await orderShopTempService.DeleteOrderShopTempAfterDays(pagedData);
                 PagedList<OrderShopTempModel> pagedDataModel = mapper.Map<PagedList<OrderShopTempModel>>(pagedData);
 
                 appDomainResult = new AppDomainResult
@@ -602,7 +612,15 @@ namespace NhapHangV2.API.Controllers
                         throw new KeyNotFoundException(messageUserCheck);
                     success = await orderShopTempService.CreateAsync(item);
                     if (success)
+                    {
+                        //Thông báo thêm vào giỏ hàng thành công
+                        var notificationSetting = await notificationSettingService.GetByIdAsync(20);
+                        var notiTemplateUser = await notificationTemplateService.GetByIdAsync(29);
+                        notiTemplateUser.Content = $"Đã thêm {itemModel.quantity} sản phẩm {itemModel.title_origin} vào giỏ hàng";
+                        await sendNotificationService.SendNotification(notificationSetting, notiTemplateUser,itemModel.title_origin , String.Empty, $"/user/cart", 
+                            LoginContext.Instance.CurrentUser.UserId, string.Empty, string.Empty);
                         appDomainResult.ResultCode = (int)HttpStatusCode.OK;
+                    }
                     else
                         throw new Exception("Lỗi trong quá trình xử lý");
                     appDomainResult.Success = success;

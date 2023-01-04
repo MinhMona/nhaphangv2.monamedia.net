@@ -126,8 +126,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -140,13 +139,10 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -212,8 +208,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ControllerNames")
                         .HasColumnType("nvarchar(max)");
@@ -229,13 +224,10 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -260,8 +252,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -274,13 +265,10 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -355,8 +343,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -369,16 +356,13 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IMG")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -403,8 +387,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -417,13 +400,10 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Status")
                         .HasColumnType("int");
@@ -457,8 +437,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -471,8 +450,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IMG")
                         .HasColumnType("nvarchar(max)");
@@ -484,9 +462,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Position")
                         .HasColumnType("int");
@@ -514,8 +490,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -528,16 +503,13 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IMG")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -562,8 +534,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -576,16 +547,13 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Link")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Parent")
                         .HasColumnType("int");
@@ -619,8 +587,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -633,8 +600,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsEmailAdmin")
                         .HasColumnType("bit");
@@ -667,9 +633,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -694,8 +658,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Content")
                         .HasColumnType("nvarchar(max)");
@@ -711,16 +674,13 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsTemplateDefault")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
@@ -748,8 +708,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -762,8 +721,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MetaDescription")
                         .HasColumnType("nvarchar(max)");
@@ -775,9 +733,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OGDescription")
                         .HasColumnType("nvarchar(max)");
@@ -814,8 +770,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -828,8 +783,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MetaDescription")
                         .HasColumnType("nvarchar(max)");
@@ -841,9 +795,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OGDescription")
                         .HasColumnType("nvarchar(max)");
@@ -901,8 +853,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -915,8 +866,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IMG")
                         .HasColumnType("nvarchar(max)");
@@ -925,9 +875,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Position")
                         .HasColumnType("int");
@@ -955,8 +903,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -969,13 +916,10 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -1000,8 +944,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -1014,13 +957,10 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -1045,8 +985,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -1059,8 +998,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IMG")
                         .HasColumnType("nvarchar(max)");
@@ -1069,9 +1007,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Position")
                         .HasColumnType("int");
@@ -1098,9 +1034,11 @@ namespace NhapHangV2.AppDbContext.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -1113,8 +1051,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ExpectedDate")
                         .HasColumnType("int");
@@ -1131,9 +1068,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -1157,9 +1092,11 @@ namespace NhapHangV2.AppDbContext.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -1172,8 +1109,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsChina")
                         .HasColumnType("bit");
@@ -1187,9 +1123,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
@@ -1442,8 +1376,7 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -1456,16 +1389,13 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsSMS")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Subject")
                         .HasColumnType("nvarchar(max)");
@@ -1685,6 +1615,9 @@ namespace NhapHangV2.AppDbContext.Migrations
                     b.Property<decimal?>("PriceSendDefaultSG")
                         .HasColumnType("decimal(18,0)");
 
+                    b.Property<int>("RemoveCartDay")
+                        .HasColumnType("int");
+
                     b.Property<string>("RestAPIKey")
                         .HasColumnType("nvarchar(max)");
 
@@ -1737,6 +1670,50 @@ namespace NhapHangV2.AppDbContext.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Configurations");
+                });
+
+            modelBuilder.Entity("NhapHangV2.Entities.ContactUs", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContactUs");
                 });
 
             modelBuilder.Entity("NhapHangV2.Entities.DeviceToken", b =>
@@ -3756,6 +3733,9 @@ namespace NhapHangV2.AppDbContext.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool?>("IsLost")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsPayment")
                         .HasColumnType("bit");
 
                     b.Property<bool?>("IsTemp")
