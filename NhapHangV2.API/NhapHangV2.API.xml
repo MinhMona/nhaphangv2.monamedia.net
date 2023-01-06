@@ -1067,6 +1067,13 @@
             <param name="request"></param>
             <returns></returns>
         </member>
+        <member name="M:NhapHangV2.API.Controllers.ShippingTypeToWareHouseController.UpdateItem(NhapHangV2.Request.Catalogue.ShippingTypeToWareHouseRequest)">
+            <summary>
+            Thêm mới item
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
         <member name="M:NhapHangV2.API.Controllers.SmallPackageController.Confirm(NhapHangV2.Request.ConfirmSmallPackageRequest)">
             <summary>
             Xác nhận lệnh trôi nổi (User)

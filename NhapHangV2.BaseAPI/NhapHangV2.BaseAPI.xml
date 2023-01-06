@@ -19,13 +19,6 @@
             <param name="otpValue"></param>
             <returns></returns>
         </member>
-        <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.LoginGoogleAsync(System.String)">
-          <summary>
-            Đăng nhập hệ thống bằng Google
-          </summary>
-          <param name="idToken"></param>
-          <returns></returns>
-        </member>
         <member name="M:NhapHangV2.BaseAPI.Controllers.Auth.AuthController.SendOTPGetPassword(System.String,System.String)">
             <summary>
             Kiểm tra OTP để đổi mật khẩu cho điện thoại
