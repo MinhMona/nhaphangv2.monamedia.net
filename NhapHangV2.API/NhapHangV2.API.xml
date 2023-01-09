@@ -880,6 +880,13 @@
             <param name="itemModel"></param>
             <returns></returns>
         </member>
+        <member name="M:NhapHangV2.API.Controllers.OrderShopTempController.AddSame(NhapHangV2.Request.DomainRequests.AppDomainRequest)">
+            <summary>
+            Đặt đơn tương tự
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
         <member name="M:NhapHangV2.API.Controllers.OrderTempController.UpdateItem(NhapHangV2.Request.OrderTempRequest)">
             <summary>
             Cập nhật thông tin item

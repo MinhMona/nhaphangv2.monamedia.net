@@ -19,6 +19,10 @@ using System.Text;
 using System.Threading.Tasks;
 using static NhapHangV2.Utilities.CoreContants;
 using NhapHangV2.Extensions;
+using NhapHangV2.Interface.UnitOfWork;
+using AutoMapper;
+using NhapHangV2.Interface.DbContext;
+using System.Threading;
 
 namespace NhapHangV2.Service.Services.Configurations
 {
@@ -39,7 +43,6 @@ namespace NhapHangV2.Service.Services.Configurations
             hubContext = serviceProvider.GetRequiredService<IHubContext<DomainHub, IDomainHub>>();
             emailConfigurationService = serviceProvider.GetRequiredService<IEmailConfigurationService>();
             configurationsService = serviceProvider.GetRequiredService<IConfigurationsService>();
-
         }
         public async Task SendNotification(NotificationSetting notificationSetting,
             NotificationTemplate notiTemplate, string contentParam,
@@ -148,7 +151,13 @@ namespace NhapHangV2.Service.Services.Configurations
                     {
                         playerIds.Add(user.OneSignalPlayerID);
                         if (user.OneSignalPlayerID != null)
-                            await OneSignalPushNotification(playerIds, $"{confi.WebsiteName}", noti, appId, restAPIKey);
+                        {
+                            Thread t = new Thread(()=>
+                            {
+                                OneSignalPushNotification(playerIds, $"{confi.WebsiteName}", noti, appId, restAPIKey);
+                            });
+                            t.Start();
+                        }
                     }
                 }
 

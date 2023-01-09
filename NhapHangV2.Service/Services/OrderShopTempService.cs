@@ -113,9 +113,9 @@ namespace NhapHangV2.Service.Services
                     if (conf != null)
                         link = conf.NumberLinkOfOrder;
 
-                    var orderTemps = unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted && x.UID == UID && x.ShopId == item.ShopId).ToList();
+                    var orderTemps = await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted && x.UID == UID && x.ShopId == item.ShopId).CountAsync();
 
-                    if (orderTemps.Count >= link)
+                    if (orderTemps >= link)
                         throw new AppException("Đã vượt quá số lượng đặt hàng");
 
                     var orderShopTemp = await this.GetSingleAsync(x => !x.Deleted && x.UID == UID
@@ -142,17 +142,20 @@ namespace NhapHangV2.Service.Services
                         if (OrderTemp.PricePromotion == null || OrderTemp.PricePromotion == 0) OrderTemp.PricePromotion = OrderTemp.PriceOrigin;
 
                         //Kiểm tra xem có sản phẩm nào giống như vầy không
-                        var orderTempsByUID = unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted
+                        var orderTempsByUID = await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted
                         && x.UID == UID
-                        && x.ItemId == OrderTemp.ItemId && x.Brand == OrderTemp.Brand && x.CategoryId == OrderTemp.CategoryId && x.Property == OrderTemp.Property).ToList();
+                        && x.ItemId == OrderTemp.ItemId && x.Brand == OrderTemp.Brand && x.CategoryId == OrderTemp.CategoryId && x.Property == OrderTemp.Property).ToListAsync();
 
                         if (orderTempsByUID.Any())
                         {
                             foreach (var orderTempByUID in orderTempsByUID)
                             {
+                                //So luong cu
+                                var oldQuantity = orderTempByUID.Quantity;
                                 //Tăng số lượng
                                 orderTempByUID.Quantity += OrderTemp.Quantity;
-                                unitOfWork.Repository<OrderTemp>().Update(orderTempByUID);
+                                if(oldQuantity != orderTempByUID.Quantity)
+                                    unitOfWork.Repository<OrderTemp>().Update(orderTempByUID);
                             }
                         }
                         else
@@ -165,7 +168,7 @@ namespace NhapHangV2.Service.Services
                     //Cập nhật tiền
                     if (orderShopTemp != null) //Chưa có shop chưa đặt
                     {
-                        var existOrderTemp = unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted && x.UID == UID && x.OrderShopTempId == orderShopTemp.Id).ToList();
+                        var existOrderTemp = await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted && x.UID == UID && x.OrderShopTempId == orderShopTemp.Id).ToListAsync();
                         existOrderTemp.Add(item.OrderTemps.FirstOrDefault());
                         item.OrderTemps = existOrderTemp;
                     }
@@ -184,6 +187,83 @@ namespace NhapHangV2.Service.Services
             }
             return true;
         }
+
+
+        public async Task<bool> CreateAddSameAsync(OrderShopTemp item)
+        {
+            int UID = LoginContext.Instance.CurrentUser.UserId;
+            using (var dbContextTransaction = Context.Database.BeginTransaction())
+            {
+                try
+                {
+                    //Chỉ được đặt sản phẩm theo shop trong phạm vi đã cài đặt, nếu lớn hơn thì không được đặt (mặc định là 200)
+                    int? link = 200;
+                    var conf = await unitOfWork.Repository<Entities.Configurations>()
+                        .GetQueryable()
+                        .OrderByDescending(x => x.Id)
+                        .FirstOrDefaultAsync(); //Giống thằng configurationsService.GetSingleAsync()
+                    if (conf != null)
+                        link = conf.NumberLinkOfOrder;
+                    var orderTemps = await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted && x.UID == UID && x.ShopId == item.ShopId).CountAsync();
+
+                    if (orderTemps >= link)
+                        throw new AppException("Đã vượt quá số lượng đặt hàng");
+
+                    var orderShopTemp = await this.GetSingleAsync(x => !x.Deleted && x.UID == UID
+                        && x.ShopId.Equals(item.ShopId.Trim())
+                        && x.ShopName.Equals(item.ShopName.Trim()));
+                    if (orderShopTemp == null) //Chưa có shop chưa đặt
+                    {
+                        item.UID = UID;
+                        await unitOfWork.Repository<OrderShopTemp>().CreateAsync(item);
+                        await unitOfWork.SaveAsync();
+                    }
+                    else //Đã có shop
+                    {
+                        orderShopTemp.OrderTemps = item.OrderTemps;
+                        item = orderShopTemp;
+                    }
+                    //orderShopTemp = await this.GetSingleAsync(x => !x.Deleted && x.UID == UID && x.ShopId == item.ShopId);
+
+                    foreach (var OrderTemp in item.OrderTemps)
+                    {
+                        OrderTemp.UID = UID;
+                        OrderTemp.OrderShopTempId = item.Id;
+
+                        if (OrderTemp.PricePromotion == null || OrderTemp.PricePromotion == 0) OrderTemp.PricePromotion = OrderTemp.PriceOrigin;
+                        //Kiểm tra xem có sản phẩm nào giống như vầy không
+                        var orderTempsByUID = await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted
+                        && x.UID == UID
+                        && x.ItemId == OrderTemp.ItemId && x.Brand == OrderTemp.Brand && x.CategoryId == OrderTemp.CategoryId && x.Property == OrderTemp.Property).CountAsync();
+                        if (orderTempsByUID <=0)
+                            await unitOfWork.Repository<OrderTemp>().CreateAsync(OrderTemp);
+                        //À cái này để tính bước nhảy của order
+                        //UpdatePriceInsert(UID, OrderTemp.StepPrice, OrderTemp.ItemId);
+                    }
+
+                    //Cập nhật tiền
+                    if (orderShopTemp != null) //Chưa có shop chưa đặt
+                    {
+                        var existOrderTemp = await unitOfWork.Repository<OrderTemp>().GetQueryable().Where(x => !x.Deleted && x.UID == UID && x.OrderShopTempId == orderShopTemp.Id).ToListAsync();
+                        existOrderTemp.Add(item.OrderTemps.FirstOrDefault());
+                        item.OrderTemps = existOrderTemp;
+                    }
+                    item = await UpdatePrice(item);
+
+                    unitOfWork.Repository<OrderShopTemp>().Update(item);
+
+                    await unitOfWork.SaveAsync();
+                    await dbContextTransaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await dbContextTransaction.RollbackAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
+            return true;
+        }
+
 
         protected void UpdatePriceInsert(int UID, string StepPrice, string item_id)
         {

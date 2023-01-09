@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using static NhapHangV2.Utilities.CoreContants;
 
@@ -634,7 +636,51 @@ namespace NhapHangV2.API.Controllers
             }
             return appDomainResult;
         }
+        /// <summary>
+        /// Đặt đơn tương tự
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("add-same")]
+        [AppAuthorize(new int[] { CoreContants.AddNew })]
+        public async Task<AppDomainResult> AddSame([FromBody] AppDomainRequest request)
+        {
+            AppDomainResult appDomainResult = new AppDomainResult();
+            bool success = false;
+            if (ModelState.IsValid)
+            {
+                var item = await orderShopTempService.CreateWithMainOrderId(request.Id);
+                if (item != null)
+                {
+                    // Kiểm tra item có tồn tại chưa?
+                    var messageUserCheck = await this.domainService.GetExistItemMessage(item);
+                    if (!string.IsNullOrEmpty(messageUserCheck))
+                        throw new KeyNotFoundException(messageUserCheck);
+                    success = await orderShopTempService.CreateAddSameAsync(item);
+                    if (success)
+                    {
+                        //Thông báo thêm vào giỏ hàng thành công
 
+                        var notificationSetting = await notificationSettingService.GetByIdAsync(20);
+                        var notiTemplateUser = await notificationTemplateService.GetByIdAsync(29);
+                        notiTemplateUser.Content = $"Đã thêm giỏ hàng tương tự đơn #{request.Id}";
+                        await sendNotificationService.SendNotification(notificationSetting, notiTemplateUser, String.Empty, String.Empty, String.Format(CoreContants.Add_Product_Success),
+                        LoginContext.Instance.CurrentUser.UserId, string.Empty, string.Empty);
+                        appDomainResult.ResultCode = (int)HttpStatusCode.OK;
+                    }
+                    else
+                        throw new Exception("Lỗi trong quá trình xử lý");
+                    appDomainResult.Success = success;
+                }
+                else
+                    throw new KeyNotFoundException("Item không tồn tại");
+            }
+            else
+            {
+                throw new AppException(ModelState.GetErrorMessage());
+            }
+            return appDomainResult;
+        }
 
     }
 }
